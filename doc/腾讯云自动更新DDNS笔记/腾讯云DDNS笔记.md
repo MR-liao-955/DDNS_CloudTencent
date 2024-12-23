@@ -36,9 +36,14 @@ pve 搭建 jellyfin 影音服务器用。
 
 ##### 1. 编译环境搭建
 
-- 安装 gcc
-```bash
-```
+- 安装 gcc  [参考博客](https://blog.csdn.net/qq_39366020/article/details/106434094)
+
+  ```bash
+  
+  
+  ```
+
+  
 
 
 
@@ -57,5 +62,4 @@ pve 搭建 jellyfin 影音服务器用。
 
 
 ##### 2. 移植 curl 库, 移植 openssh, 移植 openssl, 移植 curl, 移植ssh(如需要)
-
 
