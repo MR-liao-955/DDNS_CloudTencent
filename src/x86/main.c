@@ -1,9 +1,10 @@
 #include <stdio.h>
 // #include "app_api.h"
-// #include "config.h"
+#include "config.h"
 
 #include <time.h>
 
+//TODO:访问 DDNS https的接口，修改 域名指向
 
 int main()
 {
