@@ -38,17 +38,17 @@ pve 搭建 jellyfin 影音服务器用。
 
 - 安装 gcc  [参考博客](https://blog.csdn.net/qq_39366020/article/details/106434094)
 
-  ```bash
-  
-  
-  ```
 
-  
 
+
+
+- vscode 远程 ssh
 
 
 
 ##### 2. makefile 编写
+
+- Makefile 编写步骤
 
 
 ##### 3. SDK 文档
