@@ -1,5 +1,5 @@
 # 编译器路径
-CC := /usr/bin/gcc
+CC := /usr/bin/g++
 # 编译参数
 CFLAGS := -Os -g0 -DNDEBUG -Wall -lpthread
 
@@ -18,14 +18,27 @@ INC_PREFIX = -I
 INC_USR = $(MAIN_DIR)/inc
 INC_UTIL = $(MAIN_DIR)/util
 
+# 外部库
+INC_EXTERN = $(MAIN_DIR)/../../doc/curl-7.58.0/include \
+			$(MAIN_DIR)/lib_src/openssl-3.4.0/install_dir/include \
+			/usr/include
+# $(MAIN_DIR)/../../doc/openssl-3.4.0/include \
+
 # 头文件路径
-ALL_INC = $(addprefix $(INC_PREFIX), $(INC_USR) $(INC_UTIL))
+ALL_INC = $(addprefix $(INC_PREFIX), $(INC_USR) $(INC_UTIL)  $(INC_EXTERN))
 
 # 源文件列表
 SRC_FILES = $(SRC_DIR)/https_request.c \
 			$(SRC_DIR)/upstream_encode.c \
 			$(MAIN_DIR)/util/test.c \
-			$(MAIN_DIR)/main.c
+			$(MAIN_DIR)/main.cpp
+
+# 静态链接库
+# LIBDIR = /usr/local/lib  # 静态库的路径
+LIBDIR1 = $(MAIN_DIR)/lib_src/openssl-3.4.0/install_dir/lib64  # 静态库的路径
+LIBDIR2 = $(MAIN_DIR)/lib_src/curl-7.58.0/install_dir/lib  # 静态库的路径
+LIBS = -lssl      # 静态库的名称（libmystatic.a）
+
 
 # 目标文件列表
 OBJ_FILES = $(SRC_FILES:$(SRC_FILES)=$(OBJ_DIR)/%.o)
@@ -54,7 +67,7 @@ $(OBJ_DIR)/%.o: $(SRC_FILES)
 # 生成最终可执行文件
 $(TARGET): $(OBJ_FILES)
 	@echo "--------- Building the final binary ---------"
-	@$(CC) $(CFLAGS) $(ALL_INC) -o $@ $^
+	@$(CC) $(CFLAGS) $(ALL_INC)  -L$(LIBDIR1) $(LIBS) -L$(LIBDIR2) -lcurl -o $@ $^
 
 
 # $(OBJ_DIR)/%.o:$(MAIN_DIR)/%.c

@@ -53,7 +53,8 @@ pve 搭建 jellyfin 影音服务器用。
 
 ##### 3. SDK 文档
 
-
+curl 移植 https://cloud.tencent.com/developer/article/1932820
+./configure --prefix=$PWD/install_dir --host=x86 CC=gcc CXX=g++
 
 
 #### 二、arm 架构, 这里用的 arm64(泰山派) 和arm32 (电视机盒子+香蕉派 armv7l),
