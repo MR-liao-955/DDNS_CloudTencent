@@ -69,6 +69,8 @@ dkms.conf
 
 *bin/
 
+openssl-1.1.1*
+
 *out/
 *tools/
 _release/

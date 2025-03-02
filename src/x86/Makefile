@@ -18,9 +18,10 @@ INC_PREFIX = -I
 INC_USR = $(MAIN_DIR)/inc
 INC_UTIL = $(MAIN_DIR)/util
 
-# 外部库
+# 外部库  openssl-1.1.1
 INC_EXTERN = $(MAIN_DIR)/lib_src/curl-7.58.0/install_dir/include \
-			$(MAIN_DIR)/lib_src/openssl-3.4.0/install_dir/include
+			$(MAIN_DIR)/lib_src/openssl-1.1.1/install_dir/include
+# $(MAIN_DIR)/lib_src/openssl-3.4.0/install_dir/include
 # /usr/include
 # $(MAIN_DIR)/../../doc/openssl-3.4.0/include \
 
