@@ -63,4 +63,5 @@ curl 移植 https://cloud.tencent.com/developer/article/1932820
 
 
 ##### 2. 移植 curl 库, 移植 openssh, 移植 openssl, 移植 curl, 移植ssh(如需要)
+移植openssl 编译报错
 

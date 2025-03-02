@@ -19,9 +19,9 @@ INC_USR = $(MAIN_DIR)/inc
 INC_UTIL = $(MAIN_DIR)/util
 
 # 外部库
-INC_EXTERN = $(MAIN_DIR)/../../doc/curl-7.58.0/include \
-			$(MAIN_DIR)/lib_src/openssl-3.4.0/install_dir/include \
-			/usr/include
+INC_EXTERN = $(MAIN_DIR)/lib_src/curl-7.58.0/install_dir/include \
+			$(MAIN_DIR)/lib_src/openssl-3.4.0/install_dir/include
+# /usr/include
 # $(MAIN_DIR)/../../doc/openssl-3.4.0/include \
 
 # 头文件路径
@@ -37,8 +37,7 @@ SRC_FILES = $(SRC_DIR)/https_request.c \
 # LIBDIR = /usr/local/lib  # 静态库的路径
 LIBDIR1 = $(MAIN_DIR)/lib_src/openssl-3.4.0/install_dir/lib64  # 静态库的路径
 LIBDIR2 = $(MAIN_DIR)/lib_src/curl-7.58.0/install_dir/lib  # 静态库的路径
-LIBS = -lssl      # 静态库的名称（libmystatic.a）
-
+LIBS =  -lcurl  -lssl  -lcrypto -lpthread  # 静态库的名称（libmystatic.a）
 
 # 目标文件列表
 OBJ_FILES = $(SRC_FILES:$(SRC_FILES)=$(OBJ_DIR)/%.o)
@@ -67,7 +66,11 @@ $(OBJ_DIR)/%.o: $(SRC_FILES)
 # 生成最终可执行文件
 $(TARGET): $(OBJ_FILES)
 	@echo "--------- Building the final binary ---------"
-	@$(CC) $(CFLAGS) $(ALL_INC)  -L$(LIBDIR1) $(LIBS) -L$(LIBDIR2) -lcurl -o $@ $^
+	@$(CC) $(CFLAGS) $(ALL_INC)  -L$(LIBDIR1) -L$(LIBDIR2) $^ $(LIBS)  -o $@
+
+
+# 	@$(CC) $(CFLAGS) $(ALL_INC) -L$(LIBDIR1) -L$(LIBDIR2) $^ -lcurl -o $@
+
 
 
 # $(OBJ_DIR)/%.o:$(MAIN_DIR)/%.c
