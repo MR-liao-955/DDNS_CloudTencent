@@ -5,7 +5,7 @@ CFLAGS := -Os -g0 -DNDEBUG -Wall -lpthread
 
 # 原始代码路径
 MAIN_DIR = .
-SRC_DIR = $(MAIN_DIR)/src
+SRC_DIR = $(MAIN_DIR)/develop
 
 OBJ_DIR = $(MAIN_DIR)/obj
 
@@ -16,7 +16,7 @@ BIN_NAME = ddns_cloudTencent
 # 用户定义的头文件路径
 INC_PREFIX = -I
 INC_USR = $(MAIN_DIR)/inc
-INC_UTIL = $(MAIN_DIR)/util
+INC_UTIL = $(MAIN_DIR)/util $(MAIN_DIR)/develop/cloudTencent
 
 # 外部库  openssl-1.1.1
 INC_EXTERN = $(MAIN_DIR)/lib_src/curl-7.58.0/install_dir/include \
@@ -31,12 +31,16 @@ ALL_INC = $(addprefix $(INC_PREFIX), $(INC_USR) $(INC_UTIL)  $(INC_EXTERN))
 # 源文件列表
 SRC_FILES = $(SRC_DIR)/https_request.c \
 			$(SRC_DIR)/upstream_encode.c \
+			$(SRC_DIR)/custom_update_ddns.cpp \
+			$(SRC_DIR)/http_check_domain_api.cpp \
+			$(SRC_DIR)/http_check_ip_wan.cpp \
+			$(SRC_DIR)/cloudTencent/custom_cloudTencent.cpp \
 			$(MAIN_DIR)/util/test.c \
 			$(MAIN_DIR)/main.cpp
 
 # 静态链接库
 # LIBDIR = /usr/local/lib  # 静态库的路径
-LIBDIR1 = $(MAIN_DIR)/lib_src/openssl-3.4.0/install_dir/lib64  # 静态库的路径
+LIBDIR1 = $(MAIN_DIR)/lib_src/openssl-1.1.1/install_dir/lib64  # 静态库的路径
 LIBDIR2 = $(MAIN_DIR)/lib_src/curl-7.58.0/install_dir/lib  # 静态库的路径
 LIBS =  -lcurl  -lssl  -lcrypto -lpthread  # 静态库的名称（libmystatic.a）
 
