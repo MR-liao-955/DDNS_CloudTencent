@@ -5,7 +5,7 @@ CFLAGS := -Os -g0 -DNDEBUG -Wall -lpthread
 
 # 原始代码路径
 MAIN_DIR = .
-SRC_DIR = $(MAIN_DIR)/develop
+DEVELOP_DIR = $(MAIN_DIR)/develop
 
 OBJ_DIR = $(MAIN_DIR)/obj
 
@@ -16,7 +16,7 @@ BIN_NAME = ddns_cloudTencent
 # 用户定义的头文件路径
 INC_PREFIX = -I
 INC_USR = $(MAIN_DIR)/inc
-INC_UTIL = $(MAIN_DIR)/util $(MAIN_DIR)/develop/cloudTencent
+INC_UTIL = $(MAIN_DIR)/util $(MAIN_DIR)/develop/cloudTencent $(MAIN_DIR)/develop/inc
 
 # 外部库  openssl-1.1.1
 INC_EXTERN = $(MAIN_DIR)/lib_src/curl-7.58.0/install_dir/include \
@@ -29,12 +29,12 @@ INC_EXTERN = $(MAIN_DIR)/lib_src/curl-7.58.0/install_dir/include \
 ALL_INC = $(addprefix $(INC_PREFIX), $(INC_USR) $(INC_UTIL)  $(INC_EXTERN))
 
 # 源文件列表
-SRC_FILES = $(SRC_DIR)/https_request.c \
-			$(SRC_DIR)/upstream_encode.c \
-			$(SRC_DIR)/custom_update_ddns.cpp \
-			$(SRC_DIR)/http_check_domain_api.cpp \
-			$(SRC_DIR)/http_check_ip_wan.cpp \
-			$(SRC_DIR)/cloudTencent/custom_cloudTencent.cpp \
+SRC_FILES = $(DEVELOP_DIR)/https_request.c \
+			$(DEVELOP_DIR)/upstream_encode.c \
+			$(DEVELOP_DIR)/custom_update_ddns.cpp \
+			$(DEVELOP_DIR)/http_check_domain_api.cpp \
+			$(DEVELOP_DIR)/http_check_ip_wan.cpp \
+			$(DEVELOP_DIR)/cloudTencent/custom_cloudTencent.cpp \
 			$(MAIN_DIR)/util/test.c \
 			$(MAIN_DIR)/main.cpp
 
@@ -46,7 +46,7 @@ LIBS =  -lcurl  -lssl  -lcrypto -lpthread  # 静态库的名称（libmystatic.a�
 
 # 目标文件列表
 OBJ_FILES = $(SRC_FILES:$(SRC_FILES)=$(OBJ_DIR)/%.o)
-# OBJ_FILES = $(SRC_FILES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
+# OBJ_FILES = $(SRC_FILES:$(DEVELOP_DIR)/%.c=$(OBJ_DIR)/%.o)
 
 # 可执行文件
 TARGET = $(TARGET_BIN_DIR)/$(BIN_NAME)
@@ -83,7 +83,7 @@ $(TARGET): $(OBJ_FILES)
 # 	$(CC) --sysroot=$(SYSROOT) $(CFLAGS)  $(ALL_INC) -o $@ -c $<
 
 # $(OBJ_DIR)/%.o:$(MAIN_DIR)/src/%.c
-# 	@echo "------------- $(SRC_DIR) generate --------------"
+# 	@echo "------------- $(DEVELOP_DIR) generate --------------"
 # 	$(CC) --sysroot=$(SYSROOT) $(CFLAGS) $(ALL_INC) -o $@ -c $<
 
 

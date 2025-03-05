@@ -1,35 +1,8 @@
 #include <iostream>
 #include <string.h>
 
-static void check_local_ip();
-static void check_WAN_ip();
-
-class ipaddress
-{
-public:
-    std::string domain;
-    std::string wan_ipv6;
-    std::string wan_ipv4;
-    bool valid_ipv4 = false;
-    bool valid_ipv6 = false;
-    void check_local_ip();
-    void check_WAN_ip();
-    // 默认构造函数
-    ipaddress()
-    {
-
-    }
-
-    ipaddress(std::string domain)
-    {
-        domain = domain;
-    };
-
-    ~ipaddress()
-    {
-
-    }
-};
+#include "config.h"
+#include "http_check_ip_wan.h"
 
 
 void check_local_ip()
@@ -39,13 +12,19 @@ void check_local_ip()
 }
 
 
-void check_WAN_ip()
+void check_wan_ip()
 {
     // 检查是否和 local IPv4 一致
 }
 
-void check_wan_ip()
+void check_demo_http_check()
 {
 
+
+    // Ipaddress ip(_MACRO_NAS_DOMAIN_URL); // 如果 Ipaddress 父类有虚函数，必须子类实现它之后才能实例化对象
+    _IPv4 * ip_v4 = new _IPv4("1234");
+    // ip_v4->check_local_ip();
+    // ip_v4->check_wan_ip();
+    std::cout << "hello c++, long time no see ~ ip_v4->domain = " << ip_v4->Ipaddress::domain << std::endl;
 }
 

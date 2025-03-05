@@ -1,0 +1,4 @@
+#ifndef _HTTP_CHECK_DOMAIN_API_H
+#define _HTTP_CHECK_DOMAIN_API_H
+
+#endif
