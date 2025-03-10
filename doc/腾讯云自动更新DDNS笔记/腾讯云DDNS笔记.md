@@ -23,8 +23,8 @@ curl  curl-config
 root@dearl_ubuntu1804:/home/workspace/DDNS_CloudTencent/src/x86/lib_src/curl-7.58.0/install_dir/bin# ./curl --version
 curl 7.58.0 (x86-unknown-none) libcurl/7.58.0 OpenSSL/1.1.1
 Release-Date: 2018-01-24
-Protocols: dict file ftp ftps gopher http https imap imaps pop3 pop3s rtsp smb smbs smtp smtps telnet tftp 
-Features: AsynchDNS IPv6 Largefile NTLM NTLM_WB SSL TLS-SRP UnixSockets HTTPS-proxy 
+Protocols: dict file ftp ftps gopher http https imap imaps pop3 pop3s rtsp smb smbs smtp smtps telnet tftp
+Features: AsynchDNS IPv6 Largefile NTLM NTLM_WB SSL TLS-SRP UnixSockets HTTPS-proxy
 
 ```
 
@@ -81,7 +81,7 @@ curl 移植 https://cloud.tencent.com/developer/article/1932820
   compilation terminated.
   Makefile:48: recipe for target 'bin/ddns_cloudTencent' failed
   make: *** [bin/ddns_cloudTencent] Error 1
-  root@dearl_ubuntu1804:/home/workspace/DDNS_CloudTencent/src/x86# 
+  root@dearl_ubuntu1804:/home/workspace/DDNS_CloudTencent/src/x86#
   ```
 
 - 解决办法 [参考地址](https://blog.icrystal.top/archives/10.html)
@@ -96,7 +96,7 @@ curl 移植 https://cloud.tencent.com/developer/article/1932820
     ./Configure linux-x86_64 --prefix=/home/workspace/DDNS_CloudTencent/src/x86/lib_src/openssl-1.1.1/install_dir
     ```
 
-  - 
+  -
 
 
 
@@ -112,4 +112,30 @@ curl 移植 https://cloud.tencent.com/developer/article/1932820
 
 ##### 2. 移植 curl 库, 移植 openssh, 移植 openssl, 移植 curl, 移植ssh(如需要)
 移植openssl 编译报错
+
+
+
+#### 三、程序部分
+
+##### 1. linux 获取本地 IP 地址
+- 通过 getifaddrs 函数来获取 IPv4/6 地址 [参考地址方法5](https://blog.csdn.net/zhongmushu/article/details/89944990)
+```cpp
+    #include <stdio.h>
+    #include <sys/types.h>
+    #include <ifaddrs.h>
+    #include <netinet/in.h>
+    #include <string.h>
+    #include <arpa/inet.h>
+
+
+    struct ifaddrs * ifAddrStruct=NULL;
+    struct ifaddrs * ifa=NULL;
+    void * tmpAddrPtr=NULL;
+
+    getifaddrs(&ifAddrStruct); // 获取 IPv6地 址
+
+
+````
+
+
 

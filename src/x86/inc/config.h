@@ -8,5 +8,6 @@
 #define _MACRO_NAS_DOMAIN_URL           _MACRO_NAS_DOMAIN "." _MACRO_TOP_DOMAIN_URL
 #define _MACRO_MOV_DOMAIN_URL           _MACRO_MOV_DOMAIN "." _MACRO_TOP_DOMAIN_URL
 
+#define _ACCESS_KEY                 "test"
 
 #endif
