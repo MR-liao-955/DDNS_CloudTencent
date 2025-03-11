@@ -23,13 +23,28 @@
 #include "config.h"
 #include "http_check_ip_wan.h"
 
-using namespace std;
+// curl 获取IP
+#include <curl/curl.h>
+
+
+/***************************************************************
+ * 检查本地 IP 是否和 公网 IP 一致
+ *
+***************************************************************/
 
 typedef struct net_card_s
 {
     int num;
     char *net_card[10] = {0};
 } net_card_t;
+
+
+size_t check_wan_ip_handle_cb(void* contents, size_t size, size_t nmemb, std::string* output)
+{
+    size_t totalSize = size * nmemb;
+    output->append((char*)contents, totalSize);
+    return totalSize;
+}
 
 static void ip_local_get();
 
@@ -38,19 +53,47 @@ void _IPv6::check_wan_ip()
     std::cout << "hello c++, check_wan_ip ~ !,love from IPv6" << std::endl;
 }
 
-void Ipaddress::check_local_ip()
+void _IPv4::check_wan_ip()
 {
-    ip_local_get();
+    std::cout << "hello c++, check_local_ip ~ !,love from IPv6" << std::endl;
+    CURL *curl;
+    CURLcode res;
+    curl = curl_easy_init();
+    if(curl) {
+        std::string response_data;
+        curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "GET");
+        curl_easy_setopt(curl, CURLOPT_URL, _MACRO_SERVER_GET_WANIP);
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
+        curl_easy_setopt(curl, CURLOPT_DEFAULT_PROTOCOL, "https");
+        struct curl_slist *headers = NULL;
+        headers = curl_slist_append(headers, ": ");
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+        const char *data = "";
+        // curl_easy_setopt(curl, CURLOPT_POSTFIELDS, data);
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, check_wan_ip_handle_cb);
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, &response_data);
+        res = curl_easy_perform(curl);
+        curl_slist_free_all(headers);
+        printf("data == %s \n" ,response_data.data());
+        this->ip_wan = response_data;
+    }
+    curl_easy_cleanup(curl);
+}
+
+void _IPv6::check_local_ip()
+{
+    // ip_local_get();
     std::cout << "hello c++, check_local_ip ~ !,love from IPv6" << std::endl;
 }
 
-void _IPv4::check_wan_ip()
+void _IPv4::check_local_ip()
 {
+    // ip_local_get();
     std::cout << "hello c++, check_local_ip ~ !,love from IPv6" << std::endl;
 }
 
 // 根据网段进行判断
-int isIPv4_wan(char *ip)
+bool isIPv4_wan(char *ip)
 {
     /*
         A类地址: 1.0.0.1        到  126.255.255.254
@@ -58,85 +101,109 @@ int isIPv4_wan(char *ip)
         C类地址: 192.168.0.0    到  192.168.255.255
         D类地址属于保留地址 or 广播地址 224.0.0.1～239.255.255.254
         E类地址: 240.0.0.1      到  255.255.255.254
+
+        A类私有地址: 10.0.0.0 - 10.255.255.255
+        B类私有地址: 172.16.0.0 - 172.31.255.255
+        C类私有地址: 192.168.0.0 - 192.168.255.255
+        环回地址: 127.0.0.0 - 127.255.255.255
     */
-    printf("_-- __");
-    int segment[4] = {0};
-    char strTemp[16] = {0};
-    char *star = ip;
-    char *end = NULL;
-    printf("pointer &ip = %p \n",ip);
-    printf("pointer &star = %p \n",star);
 
-    for (size_t i = 0; i < 3; i++)
+    struct in_addr addr;
+    inet_pton(AF_INET, ip, &addr);
+
+    // 转换成16进制
+    uint32_t ip_hex = ntohl(addr.s_addr); // ip :192.168.12.12 ==> 0xc0a80c0c
+    // 检查是否在私有IP范围内
+    if ((ip_hex > 0x0A000000 && ip_hex < 0x0AFFFFFF) || // 10.0.0.0 - 10.255.255.255
+        (ip_hex > 0xAC100000 && ip_hex < 0xAC1FFFFF) || // 172.16.0.0 - 172.31.255.255
+        (ip_hex > 0xC0A80000 && ip_hex < 0xC0A8FFFF) || // 192.168.0.0 - 192.168.255.255
+        (ip_hex > 0x7F000000 && ip_hex < 0x7FFFFFFF))   // 127.0.0.0 - 127.255.255.255 (loopback)
     {
-        end = strchr(star + 1,'.');
-        if(star == end)
-            break;
-
-            cout << "end-star = " << end-star << endl;
-        memcpy(strTemp, star, end-star);
-        segment[i] = strtol(strTemp, NULL, 10);
-        cout << "segment[" << i << "] = " << segment[i] << endl;
-        star = end;  // star 指向 end, end 重新查找
-
+        printf(" private ip \n");
+        return 0; // 私有IP，返回false
     }
-    memcpy(strTemp, star, 3);
-    segment[3] = strtol(strTemp, NULL, 10);
-    cout << "segment[3] = " << segment[3] << endl;
-    // TODO: 处理
+    printf(" wan ip \n");
+    return 1;
 }
 
 // 前缀来判断
-void isIPv6_wan()
+bool isIPv6_wan(char *ipv6)
 {
+    // 判断IPv6是否私有
+    // 2408:8459:3010:8ba0:85fb:7ef7:3696:5453
+    // fe80::20c:29ff:fe13:2572
+
+    // 内网
+    /*
+        2000::/3    公网
+        fc00::/7    私有IP,类似于IPv4局域网
+        fe80::/10	本地IP地址
+        ff00::/8	组播地址
+        ::1	        回环网络
+        ::	        未指定
+    */
+   char temp[5] = {0};
+
+    printf(" [%s] running ! \n", __func__);
+    char * star = ipv6;
+    char * end = NULL;
+    for (int i = 0; i < 32; i++)
+    {
+        if (':' == ipv6[i])
+        {
+            end = star + i;
+            break;
+        }
+    }
+
+    if ((end - star) == 4)
+    {
+        memcpy(temp, star, end-star);
+        printf(" ----- temp = %s  ----- \n",temp);
+        uint16_t num = strtol(temp,NULL,16);
+        return ((num >> 13) ==  0b001);
+    }
+    printf(" [%s] %s is not ipv6_wan  \n", __func__, ipv6);
+    return 0;
 }
 
-// int ip_valid(char *ip)
-int ip_valid(char *ip_test)
+int ip_valid(char *ip)
 {
-    // 2408:8459:3010:8ba0:85fb:7ef7:3696:5453
+
     // 192.168.79.1
     //  判断冒号数量确定是 ipv6
     int len = 0;
-    int cnt = 0;
-    int ret = 0;
-    cout << " ---★---1 " << endl;
-    char ip[256] = {0};
-    memcpy(ip,ip_test,strlen(ip_test));
-
+    int ret = -1;
+    int type_ip = 0;
     len = strlen(ip);
-    cout << " ---★---2 " << endl;
-    cout << " ---★--- ip :" << ip  << endl;
     for (int i = 0; i < len; i++)
     {
-        if (ip[i] == ':' || ip[i] == '.')
-            cnt++;
-        cout << " ---★--- i = "<< i <<" ,cnt ="<< cnt << endl;
-    }
-    switch (cnt)
-    {
-    case 3:
-        // IPv4
-        // 获取前几位 IP 判断是否是局域网
-        if(ip == nullptr)
-            std::cout << " ip == NULL ???? " << std::endl;
-
-        ret = isIPv4_wan(ip);//!~bug
-        if (1 == ret)
+        if (ip[i] == '.')
         {
-            std::cout << " ipv4 is valid , ret == 1 " << std::endl;
+            type_ip = 1;
+            break;
         }
-
-        break;
-    case 7:
-        // IPv6
-
-    default:
-        break;
+        else if (ip[i] == ':')
+        {
+            type_ip = 2;
+            break;
+        }
     }
+
+    if (1 == type_ip)
+        ret = isIPv4_wan(ip); // 注意 该函数并没有保护。如果传入奇怪的IP 也能你用。
+    else if (2 == type_ip)
+        ret = isIPv6_wan(ip);
+        // ret = isIPv6_wan("2408:8459:3010:8ba0:85fb:7ef7:3696:5453");
+        // ret = isIPv6_wan("FFFF:8459:3010:8ba0:85fb:7ef7:3696:5453");
+    else
+        printf(" invalid ip \n");
+
+    printf(" IP address wan = %d \n", ret);
+    return ret;
 }
 
-void ip_local_get2()
+void ip_local_get()
 {
     struct ifaddrs *ifAddrStruct = NULL;
     struct ifaddrs *ifa = NULL;
@@ -152,20 +219,19 @@ void ip_local_get2()
         }
         if (ifa->ifa_addr->sa_family == AF_INET) // check it is IP4
         {
-            // is a valid IP4 Address
-            tmpAddrPtr = &((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
             char addressBuffer[INET_ADDRSTRLEN] = {0};
+            tmpAddrPtr = &((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
             inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
-            printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
-            ip_valid(addressBuffer); // !bug
+            printf("%s IP_v4 Address %s\n", ifa->ifa_name, addressBuffer);
+            ip_valid(addressBuffer);
         }
         else if (ifa->ifa_addr->sa_family == AF_INET6) // check it is IP6
         {
-            // is a valid IP6 Address
+            char addressBuffer[INET6_ADDRSTRLEN] = {0};
             tmpAddrPtr = &((struct sockaddr_in6 *)ifa->ifa_addr)->sin6_addr;
-            char addressBuffer[INET6_ADDRSTRLEN];
             inet_ntop(AF_INET6, tmpAddrPtr, addressBuffer, INET6_ADDRSTRLEN);
-            printf("%s IP Address %s\n", ifa->ifa_name, addressBuffer);
+            printf("%s IP_v6 Address %s\n", ifa->ifa_name, addressBuffer);
+            ip_valid(addressBuffer);
         }
     }
     if (ifAddrStruct != NULL)
@@ -174,57 +240,30 @@ void ip_local_get2()
     }
 }
 
-void ip_local_get()
-{
-    char hostname[256];
-    if (gethostname(hostname, sizeof(hostname)) == -1)
-    {
-        perror("gethostname");
-        return;
-    }
-
-    struct addrinfo hints{}, *res, *p;
-    hints.ai_family = AF_INET; // 仅获取 IPv4 地址
-    hints.ai_socktype = SOCK_STREAM;
-
-    if (getaddrinfo(hostname, nullptr, &hints, &res) != 0)
-    {
-        perror("getaddrinfo");
-        return;
-    }
-
-    for (p = res; p != nullptr; p = p->ai_next)
-    {
-        struct sockaddr_in *addr = (struct sockaddr_in *)p->ai_addr;
-        std::cout << "Local IP: " << inet_ntoa(addr->sin_addr) << std::endl;
-    }
-
-    freeaddrinfo(res);
-}
 
 void ip_wan_http_connect()
 {
     // curl 建立连接， 或者依附于全局socket
 }
 
+
+_IPv4 *ip_v4 = NULL;
+_IPv6 *ip_v6 = NULL;
 void check_demo_http_check()
 {
+    ip_v4 = new _IPv4();
+    ip_v6 = new _IPv6("dearl2.top");
+    ip_v4->set_domain(_MACRO_TOP_DOMAIN_URL);
 
-    std::cout << "===================" << std::endl;
-    ip_local_get2();
-    std::cout << "===================" << std::endl;
+    cout << "===================" << endl;
+    string tmp = ip_v6->get_domain();
+    cout << "tmp ==" << tmp.c_str() << endl;
+    ip_v4->check_wan_ip();
+
+    cout << "ip_v4->ip_wan.data() = " << ip_v4->ip_wan.data() <<endl;
+    // TODO: handle the wan ip to compare with local ip
+
+    ip_local_get();
+    cout << "===================" << endl;
     // Ipaddress ip(_MACRO_NAS_DOMAIN_URL); // 如果 Ipaddress 父类有虚函数，必须子类实现它之后才能实例化对象
-    _IPv4 *ip_v4 = new _IPv4();
-    Ipaddress *ip_v5 = new _IPv4();
-    Ipaddress *ip_v6 = new _IPv6("1,1,1,1");
-    // ip_v4->check_local_ip();
-    // ip_v4->check_wan_ip();
-    std::cout << "ip_v4->Ipaddress::domain = " << ip_v4->Ipaddress::domain << std::endl;
-    std::cout << "ip_v4->domain = " << ip_v4->domain << std::endl;
-    std::cout << "hello c++, long time no see ~ ip_v4->domain = " << ip_v4->Ipaddress::domain << std::endl;
-    ip_v5->check_wan_ip();
-    ip_v6->check_local_ip();
-    delete ip_v4;
-    delete ip_v5;
-    ip_v4->check_local_ip();
 }
