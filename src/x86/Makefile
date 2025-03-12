@@ -16,7 +16,11 @@ BIN_NAME = ddns_cloudTencent
 # 用户定义的头文件路径
 INC_PREFIX = -I
 INC_USR = $(MAIN_DIR)/inc
-INC_UTIL = $(MAIN_DIR)/util $(MAIN_DIR)/develop/cloudTencent $(MAIN_DIR)/develop/inc
+INC_UTIL = $(MAIN_DIR)/util 							\
+			$(MAIN_DIR)/develop/cloudTencent			\
+			$(MAIN_DIR)/develop/cloudAlibaba 			\
+			$(MAIN_DIR)/develop/rsa_configFile 			\
+			$(MAIN_DIR)/develop/inc
 
 # 外部库  openssl-1.1.1
 INC_EXTERN = $(MAIN_DIR)/lib_src/curl-7.58.0/install_dir/include \
@@ -34,7 +38,11 @@ SRC_FILES = $(DEVELOP_DIR)/https_request.c \
 			$(DEVELOP_DIR)/custom_update_ddns.cpp \
 			$(DEVELOP_DIR)/http_check_domain_api.cpp \
 			$(DEVELOP_DIR)/http_check_ip_wan.cpp \
+			$(DEVELOP_DIR)/rsa_configFile/rsa_decode.cpp \
 			$(DEVELOP_DIR)/cloudTencent/custom_cloudTencent.cpp \
+			$(DEVELOP_DIR)/cloudTencent/custom_cloudTencent_json_decode.cpp \
+			$(DEVELOP_DIR)/cloudAlibaba/custom_cloudAlibaba.cpp \
+			$(DEVELOP_DIR)/cloudAlibaba/custom_cloudAlibaba_json_decode.cpp \
 			$(MAIN_DIR)/util/test.c \
 			$(MAIN_DIR)/main.cpp
 

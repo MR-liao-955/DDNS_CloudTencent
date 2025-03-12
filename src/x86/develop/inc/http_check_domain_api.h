@@ -3,13 +3,14 @@
 
 #include <iostream>
 #include <string>
+#include "http_check_ip_wan.h"
 
 using namespace std;
 
-void api_connect_server();
+extern void api_connect_server(Ipaddress& ip);
 
-void api_DNS_IPv4(string str_domain, string ip_v4);
+extern void api_DNS_IPv4(string str_domain, string ip_v4);
 
-void api_DNS_IPv6(string str_domain, string ip_v4);
+extern void api_DNS_IPv6(string str_domain, string ip_v4);
 
 #endif

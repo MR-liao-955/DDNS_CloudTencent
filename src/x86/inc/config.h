@@ -9,7 +9,8 @@
 #define _MACRO_MOV_DOMAIN_URL           _MACRO_MOV_DOMAIN "." _MACRO_TOP_DOMAIN_URL
 
 // #define _MACRO_SERVER_GET_WANIP     "https://ip.sb"
-#define _MACRO_SERVER_GET_WANIP     "https://myip.ipip.net/s"
+// #define _MACRO_SERVER_GET_WANIP     "https://myip.ipip.net/s"
+#define _MACRO_SERVER_GET_WANIP     "https://ip.3322.net/"
 
 #define _ACCESS_KEY                 "test"
 
