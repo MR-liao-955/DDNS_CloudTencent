@@ -43,12 +43,13 @@ SRC_FILES = $(DEVELOP_DIR)/https_request.c \
 			$(DEVELOP_DIR)/cloudTencent/custom_cloudTencent_json_decode.cpp \
 			$(DEVELOP_DIR)/cloudAlibaba/custom_cloudAlibaba.cpp \
 			$(DEVELOP_DIR)/cloudAlibaba/custom_cloudAlibaba_json_decode.cpp \
-			$(MAIN_DIR)/util/test.c \
+			$(MAIN_DIR)/util/tretap_CJSON.c \
+			$(MAIN_DIR)/util/tretap_base_64.c \
 			$(MAIN_DIR)/main.cpp
 
 # 静态链接库
 # LIBDIR = /usr/local/lib  # 静态库的路径
-LIBDIR1 = $(MAIN_DIR)/lib_src/openssl-1.1.1/install_dir/lib64  # 静态库的路径
+LIBDIR1 = $(MAIN_DIR)/lib_src/openssl-3.4.0/install_dir/lib64  # 静态库的路径
 LIBDIR2 = $(MAIN_DIR)/lib_src/curl-7.58.0/install_dir/lib  # 静态库的路径
 LIBS =  -lcurl  -lssl  -lcrypto -lpthread  # 静态库的名称（libmystatic.a）
 

@@ -89,16 +89,27 @@ curl 移植 https://cloud.tencent.com/developer/article/1932820
   1. 由于当前系统安装了 curl , 但是我并没有找到 curl/curl.h 的头文件。因此考虑重新编译一下 curl 的链接库，由于X86 不在乎这点内存和硬盘空间，因此编译成 静态链接库 libcurl
 
   - 安装 openssl 库
+  1. cd /home/workspace/DDNS_CloudTencent/src/x86/lib_src
+    mkdir install_dir
 
     ```bash
     ./Configure linux-x86_64 --prefix=/home/workspace/DDNS_CloudTencent/src/x86/lib_src/openssl-3.4.0/install_dir
-    doc/openssl-1.1.1
-    ./Configure linux-x86_64 --prefix=/home/workspace/DDNS_CloudTencent/src/x86/lib_src/openssl-1.1.1/install_dir
+
+    make
+    make install
     ```
 
-  -
+  - 安装 curl
+    ```bash
+        --prefix：指定安装路径。
+      --enable-shared：编译动态库（.so）。
+      --disable-static：禁用静态库（.a）。
+      ./configure --prefix=/home/workspace/DDNS_CloudTencent/src/x86/lib_src/curl-7.58.0/install_dir --enable-shared --enable-static
 
+      make
+      make install
 
+    ```
 
 
 

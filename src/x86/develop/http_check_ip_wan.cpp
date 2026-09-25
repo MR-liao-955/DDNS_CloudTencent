@@ -274,5 +274,4 @@ void check_demo_http_check()
     // TODO: handle the wan ip to compare with local ip
 
     cout << "===================" << endl;
-    // Ipaddress ip(_MACRO_NAS_DOMAIN_URL); // 如果 Ipaddress 父类有虚函数，必须子类实现它之后才能实例化对象
 }
