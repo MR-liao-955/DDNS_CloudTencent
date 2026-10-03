@@ -40,11 +40,12 @@ SRC_FILES = $(DEVELOP_DIR)/https_request.c \
 			$(DEVELOP_DIR)/http_check_ip_wan.cpp \
 			$(DEVELOP_DIR)/rsa_configFile/rsa_decode.cpp \
 			$(DEVELOP_DIR)/cloudTencent/custom_cloudTencent.cpp \
-			$(DEVELOP_DIR)/cloudTencent/custom_cloudTencent_json_decode.cpp \
+			$(DEVELOP_DIR)/cloudTencent/custom_cloudTencent_response_decode.cpp \
 			$(DEVELOP_DIR)/cloudAlibaba/custom_cloudAlibaba.cpp \
 			$(DEVELOP_DIR)/cloudAlibaba/custom_cloudAlibaba_json_decode.cpp \
 			$(MAIN_DIR)/util/tretap_CJSON.c \
 			$(MAIN_DIR)/util/tretap_base_64.c \
+			$(MAIN_DIR)/util/curl_request_api.cpp \
 			$(MAIN_DIR)/main.cpp
 
 # 静态链接库

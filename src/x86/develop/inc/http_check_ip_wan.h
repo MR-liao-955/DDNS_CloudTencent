@@ -4,20 +4,35 @@
 
 using namespace std;
 
+#define _RETURN_SUCC 0
+#define _RETURN_FAIL -1
+
+
 void check_demo_http_check();
 
 class Ipaddress // 暂不区分 IPv4 和 v6
 {
 public:
+    typedef enum {
+        CLASS_IPV6 = 0,
+        CLASS_IPV4
+
+    }ip_type_t;
+
+    ip_type_t class_type_ip;
     string domain;
     string ip_domain;
-    string ip_nat_wan;
+    string ip_wan;
+    string ip_ddns_modify;
     string ip_local;
-    bool valid_ip = false;
+
+    bool valid_ipwan = false;
     // 根据子类的类型来确定用何种ip
     void check_local_ip();
     virtual void check_nat_wan_ip() = 0;
     virtual void check_domain_ip() = 0;
+
+    int match_wanip_with_localip();
 
     void print_domain() const { cout << domain << endl; }
     string get_domain() const { return domain; }
@@ -36,7 +51,11 @@ class _IPv4 : public Ipaddress
 public:
     void check_nat_wan_ip() override;
     void check_domain_ip() override;
-    _IPv4(std::string _domain) { (this->domain = _domain); }
+
+    _IPv4(std::string _domain) {
+        (this->domain = _domain);
+        class_type_ip = CLASS_IPV4;
+    }
     ~_IPv4() {}
 };
 
@@ -48,6 +67,7 @@ public:
     _IPv6(std::string _domain)
     {
         this->domain = _domain;
+        class_type_ip = CLASS_IPV6;
     }
 
     _IPv6() {}

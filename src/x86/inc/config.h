@@ -12,16 +12,13 @@
 // #define _MACRO_SERVER_GET_WANIP     "https://myip.ipip.net/s"
 #define _MACRO_SERVER_GET_WANIP     "https://ip.3322.net/"
 
-// curl -X POST https://dnsapi.cn/Record.Info -d 'login_token=LOGIN_TOKEN&format=json&domain_id=2317346&record_id=16894439'
 
-#define TENCENT_DNSPOD_URL          "https://dnsapi.cn/Record.Info"
+#define TENCENT_REQUEST_URL                     "dnspod.tencentcloudapi.com"
 
-
-#define DOMAIN_ID                   2317346
-#define RECORD_ID                   644952
-#define LOGIN_TOKEN                 "644952,cb861cd07897bca0d826f97a96f2b0b7"
-
-
-
+#define TENCENT_SECURITYKEY_PATH                "/home/workspace/tencent_cloud_security_key.txt"
+#define TENCENT_REQUEST_DEF_VERSION             "2021-03-23"
+#define TENCENT_REQUEST_DEF_ACTION              "DescribeDomainList"
+#define TENCENT_REQUEST_DEF_SECRETID            "AKIDthIiyV1UrESWRAlRAzpW5Tn7VwGWq6FE"      // 根据创建的 ID 来确定。
+#define TENCENT_REQUEST_DEF_CONTENT_TYPE        "application/json"
 
 #endif
