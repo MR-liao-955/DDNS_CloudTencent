@@ -21,8 +21,7 @@
 #include <cstdio>
 
 #include "config.h"
-#include "http_check_ip_wan.h"
-#include "http_check_domain_api.h"
+#include "check_ip_wan.h"
 
 // curl 获取IP
 #include <curl/curl.h>
@@ -42,14 +41,6 @@ size_t check_wan_ip_handle_cb(void* contents, size_t size, size_t nmemb, std::st
     return totalSize;
 }
 
-void _IPv4::check_domain_ip()
-{
-    api_connect_server(*this);
-}
-void _IPv6::check_domain_ip()
-{
-    api_connect_server(*this);
-}
 
 void _IPv4::check_nat_wan_ip()
 {
@@ -243,17 +234,18 @@ void Ipaddress::check_local_ip()
 void check_demo_http_check()
 {
     string domain = "dearl.top";
-    ip_v4 = new _IPv4(domain);
-    ip_v6 = new _IPv6(domain);
+    _IPv4 &ip_v4 = _IPv4::getInstance(domain);
+    _IPv6 &ip_v6 = _IPv6::getInstance(domain);
 
-    ip_v4->check_local_ip();
-    ip_v6->check_local_ip();
+    ip_v4.check_local_ip();
+    ip_v6.check_local_ip();
 
-    ip_v4->check_nat_wan_ip();
-    ip_v6->check_nat_wan_ip();
+    ip_v4.check_nat_wan_ip();
+    ip_v6.check_nat_wan_ip();
 
-    ip_v4->match_wanip_with_localip();
-    ip_v6->match_wanip_with_localip();
+    ip_v4.match_wanip_with_localip();
+    ip_v6.match_wanip_with_localip();
+
 
     cout << "===================" << endl;
 }

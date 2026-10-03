@@ -3,7 +3,7 @@
 #include <stdio.h>
 
 #include "custom_cloudTencent.hpp"
-#include "http_check_ip_wan.h"
+#include "check_ip_wan.h"
 
 // 用于 json 解析库使用。
 extern void *ddns_mem_alloc(int size);
@@ -30,13 +30,22 @@ void ddns_mem_free(void **ptr){
 int main() {
     std::cout << "hello world ! ~~~" << std::endl;
 
+    // 检查是否有子类域名
+
     // 本地 IP 检查
     check_demo_http_check();
 
     // 腾讯云接口
-    cloudTencent_dnspod dnspod;
+    cloudTencent_dnspod &dnspod = cloudTencent_dnspod::getInstance();
 
     dnspod.dnspod_domain_list();
+
+    // dnspod.dnspod_record_list();
+
+    dnspod.dnspod_record_list_filter();
+
+    _IPv4::getInstance("dearl.top").check_nat_wan_ip();
+    _IPv6::getInstance("dearl.top").check_nat_wan_ip();
 
 
 }

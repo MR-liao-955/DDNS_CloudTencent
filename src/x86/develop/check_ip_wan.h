@@ -29,8 +29,6 @@ public:
     bool valid_ipwan = false;
     // 根据子类的类型来确定用何种ip
     void check_local_ip();
-    virtual void check_nat_wan_ip() = 0;
-    virtual void check_domain_ip() = 0;
 
     int match_wanip_with_localip();
 
@@ -42,6 +40,7 @@ public:
     {
         domain = "Ipaddress construction function() ";
     };
+
     // 有参构造 构造的时候就写入域名
     // Ipaddress(string domain) : domain(domain) {};
 };
@@ -49,8 +48,19 @@ public:
 class _IPv4 : public Ipaddress
 {
 public:
-    void check_nat_wan_ip() override;
-    void check_domain_ip() override;
+    static _IPv4 &getInstance(std::string _domain)
+    {
+        static _IPv4 instance(_domain);
+        return instance;
+    }
+
+
+    void check_nat_wan_ip() ;
+    void check_domain_ip() ;
+
+private:
+    _IPv4& operator=(const _IPv4 &) = delete;
+    _IPv4(const _IPv4 &) = delete;
 
     _IPv4(std::string _domain) {
         (this->domain = _domain);
@@ -59,19 +69,30 @@ public:
     ~_IPv4() {}
 };
 
+
+
 class _IPv6 : public Ipaddress
 {
 public:
-    void check_nat_wan_ip() override;
-    void check_domain_ip() override;
+    static _IPv6 & getInstance(std::string _domain)
+    {
+        static _IPv6 instance(_domain);
+        return instance;
+    }
+
+
+    void check_nat_wan_ip() ;
+    void check_domain_ip() ;
+
+private:
+    _IPv6 &operator=(const _IPv6 &) = delete;
+    _IPv6(const _IPv6 &) = delete;
+
     _IPv6(std::string _domain)
     {
         this->domain = _domain;
         class_type_ip = CLASS_IPV6;
     }
-
-    _IPv6() {}
-    ~_IPv6() {}
 };
 
 #endif

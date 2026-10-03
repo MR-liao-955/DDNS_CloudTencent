@@ -103,6 +103,31 @@ int cloudTencent_dnspod::set_ipv6_dns_record(string sub_domain)
 }
 
 
+void cloudTencent_dnspod::generate_http_header(curl_slist **headers, string action)
+{
+    string temp;
+    temp = "Authorization: " + request_authorization;
+    *headers = curl_slist_append(*headers, temp.data());
+
+    temp = "Content-Type: " + request_content_type;     //content-type:application/json; charset=utf-8\nhost:"TENCENT_REQUEST_URL"\n";
+    *headers = curl_slist_append( *headers, temp.data());
+
+    *headers = curl_slist_append(*headers, "Host: " TENCENT_REQUEST_URL);
+
+    temp ="X-TC-Action: " + action;
+    *headers = curl_slist_append( *headers, temp.data());
+
+    temp = "X-TC-Timestamp: " +std::to_string(request_timestamp);
+    *headers = curl_slist_append( *headers, temp.data());
+
+    temp = "X-TC-Version: "+ request_version;
+    *headers = curl_slist_append( *headers, temp.data());
+    *headers = curl_slist_append( *headers, "X-TC-Language: zh-CN");
+
+    *headers = curl_slist_append( *headers, "X-TC-Token: ");    //string tokenHeader = "X-TC-Token: " + TOKEN;
+    printf("[%s] execute curl_request_post\n", __func__);
+
+}
 
 /***
  * @brief: 生成 signature 用于鉴权
@@ -111,7 +136,7 @@ int cloudTencent_dnspod::set_ipv6_dns_record(string sub_domain)
  * @doc: https://cloud.tencent.com/document/api/1427/56190
  * @status: 还未验证
  */
-void cloudTencent_dnspod::generate_http_post_authorization(string method, string payload)
+void cloudTencent_dnspod::generate_http_authorization(string method, string payload)
 {
     time_t t = time(nullptr);
     char timestamp_str[32];
@@ -217,50 +242,90 @@ void cloudTencent_dnspod::generate_http_post_authorization(string method, string
 
 /**
  * @brief: 获取域名列表
- * @哈基米
+ * @哈基mi
  * @doc: https://cloud.tencent.com/document/product/1427/56172
  * @data: 2026/10/2
  * @author: DearL- Arthur
  */
 bool cloudTencent_dnspod::dnspod_domain_list()
 {
-
-    string temp;
     struct curl_slist *headers = NULL;
+
+    string url = "https://" TENCENT_REQUEST_URL;
 
     request_action = "DescribeDomainList";
 
     // 生成 authorization 用于请求头
-    generate_http_post_authorization("POST","{}");
+    generate_http_authorization("POST","{}");
 
-    temp = "Authorization: " + request_authorization;
-    headers = curl_slist_append(headers, temp.data());
+    generate_http_header(&headers, request_action);
 
-    temp = "Content-Type: " + request_content_type;     //content-type:application/json; charset=utf-8\nhost:"TENCENT_REQUEST_URL"\n";
-    headers = curl_slist_append( headers, temp.data());
-
-    headers = curl_slist_append(headers, "Host: " TENCENT_REQUEST_URL);
-
-    temp ="X-TC-Action: " + request_action;
-    headers = curl_slist_append( headers, temp.data());
-
-    temp = "X-TC-Timestamp: " +std::to_string(request_timestamp);
-    headers = curl_slist_append( headers, temp.data());
-
-    temp = "X-TC-Version: "+ request_version;
-    headers = curl_slist_append( headers, temp.data());
-    headers = curl_slist_append( headers, "X-TC-Language: zh-CN");
-
-    headers = curl_slist_append( headers, "X-TC-Token: ");    //string tokenHeader = "X-TC-Token: " + TOKEN;
-    printf("[%s] execute curl_request_post\n", __func__);
-
-    temp = "https://" TENCENT_REQUEST_URL;
-    string response = curl_request_post(temp.data(), "{}", 2, headers, (curl_cb )record_info_write_cb);
+    string response = curl_request_post(url.data(), "{}", 2, headers, (curl_cb )record_info_write_cb);
 
     printf("[%s] done !\n", __func__);
 
     return tencentcloud_decode_domain_list(response, this);
 }
 
+//DescribeRecordList
+/**
+ * @brief: 获取解析记录列表
+ * @doc: https://cloud.tencent.com/document/product/1427/56166
+ * @data: 2026/10/3
+ * @author: DearL - Arthur
+ *
+*/
+bool cloudTencent_dnspod::dnspod_record_list()
+{
+    string payload;
+    struct curl_slist *headers = NULL;
 
-// "DescribeRecordType"
+    request_action = "DescribeRecordList";
+
+    string url = "https://" TENCENT_REQUEST_URL;
+    if  (domain_subname.empty()){
+
+        payload = "{\"Domain\": \"" + domain_name + "\"}";
+    }else{
+
+        payload = "{\"Domain\": \"" + domain_name + "\", \"SubDomain\": \"" + domain_subname + "\"}";
+    }
+
+
+    // 生成 authorization 用于请求头
+    generate_http_authorization("POST",payload);
+
+    generate_http_header(&headers, request_action);
+
+    string response = curl_request_post(url.data(), payload.data(), 2, headers, (curl_cb )record_info_write_cb);
+
+    printf("[%s] done !\n", __func__);
+
+    // return tencentcloud_decode_domain_list(response, this);
+    return true;
+}
+
+// DescribeRecordFilterList
+bool cloudTencent_dnspod::dnspod_record_list_filter()
+{
+    string payload;
+    struct curl_slist *headers = NULL;
+
+    request_action = "DescribeRecordFilterList";
+
+    string url = "https://" TENCENT_REQUEST_URL;
+    if  (domain_subname.empty())
+        payload = "{\"Domain\": \"" + domain_name + "\"}";
+    else
+        payload = "{\"Domain\": \"" + domain_name + "\", \"SubDomain\": \"" + domain_subname + "\", \"IsExactSubDomain\": true}";
+
+    generate_http_authorization("POST",payload);
+
+    generate_http_header(&headers, request_action);
+
+    string response = curl_request_post(url.data(), payload.data(), 2, headers, (curl_cb )record_info_write_cb);
+
+    printf("[%s] done !\n", __func__);
+
+    return tencentcloud_decode_record_list_filter(response, this);
+}

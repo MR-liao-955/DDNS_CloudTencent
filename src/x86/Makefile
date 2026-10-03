@@ -19,8 +19,8 @@ INC_USR = $(MAIN_DIR)/inc
 INC_UTIL = $(MAIN_DIR)/util 							\
 			$(MAIN_DIR)/develop/cloudTencent			\
 			$(MAIN_DIR)/develop/cloudAlibaba 			\
-			$(MAIN_DIR)/develop/rsa_configFile 			\
-			$(MAIN_DIR)/develop/inc
+			$(MAIN_DIR)/develop/rsa_configFile			\
+			$(MAIN_DIR)/develop
 
 # 外部库  openssl-1.1.1
 INC_EXTERN = $(MAIN_DIR)/lib_src/curl-7.58.0/install_dir/include \
@@ -33,11 +33,7 @@ INC_EXTERN = $(MAIN_DIR)/lib_src/curl-7.58.0/install_dir/include \
 ALL_INC = $(addprefix $(INC_PREFIX), $(INC_USR) $(INC_UTIL)  $(INC_EXTERN))
 
 # 源文件列表
-SRC_FILES = $(DEVELOP_DIR)/https_request.c \
-			$(DEVELOP_DIR)/upstream_encode.c \
-			$(DEVELOP_DIR)/custom_update_ddns.cpp \
-			$(DEVELOP_DIR)/http_check_domain_api.cpp \
-			$(DEVELOP_DIR)/http_check_ip_wan.cpp \
+SRC_FILES =	$(DEVELOP_DIR)/check_ip_wan.cpp \
 			$(DEVELOP_DIR)/rsa_configFile/rsa_decode.cpp \
 			$(DEVELOP_DIR)/cloudTencent/custom_cloudTencent.cpp \
 			$(DEVELOP_DIR)/cloudTencent/custom_cloudTencent_response_decode.cpp \
