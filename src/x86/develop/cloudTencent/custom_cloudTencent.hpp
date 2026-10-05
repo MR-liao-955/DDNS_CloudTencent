@@ -21,22 +21,28 @@ public:
         return instance;
     }
 
+    typedef enum {
+        CLASS_IPV6 = 0,
+        CLASS_IPV4
+    }ip_type_t;
+
     uint32_t domain_id;
     uint32_t record_id_ipv4;
-    uint32_t record_id_ipv6;
     string record_ipv4;
+    uint32_t record_id_ipv6;
     string record_ipv6;
     string domain_grade;
     string domain_name;
     string domain_subname;
 
-
     // 子域名记录数组
-    int set_ipv4_dns_record(string sub_domain);
-    int set_ipv6_dns_record(string sub_domain);
+    int dnspod_record_TXT_modify(ip_type_t ip_type, string ip_addr);
+
+    int dnspod_record_modify(ip_type_t ip_type, string ip_addr);
 
     bool dnspod_domain_list();
     bool dnspod_record_list();
+    bool dnspod_record_line_list();
     bool dnspod_record_list_filter();
 
 private:
@@ -57,7 +63,7 @@ private:
     {
         domain_id = 0;
         domain_name = _MACRO_TOP_DOMAIN_URL;
-        domain_subname = _MACRO_WWW_DOMAIN;
+        domain_subname = "";
         security_key_path = TENCENT_SECURITYKEY_PATH;
         request_version = TENCENT_REQUEST_DEF_VERSION;
         request_action = TENCENT_REQUEST_DEF_ACTION;

@@ -73,13 +73,19 @@ void _IPv4::check_nat_wan_ip()
 /*
     @brief: 检查公网 IP 是否和 local ip 有任何一位匹配的。
 */
-int Ipaddress::match_wanip_with_localip()
+int Ipaddress:: match_wanip_with_localip()
 {
+#if 0
     if (valid_ipwan == true && ip_wan == ip_local){
         // 本机IP是公网
         ip_ddns_modify = ip_local;
         return _RETURN_SUCC;
     }
+#else
+        ip_ddns_modify = ip_local;
+        return _RETURN_SUCC;
+#endif
+
     return _RETURN_FAIL;
 }
 
@@ -201,7 +207,7 @@ void Ipaddress::check_local_ip()
             if (this->valid_ipwan) continue;
             tmpAddrPtr = &((struct sockaddr_in *)ifa->ifa_addr)->sin_addr;
             inet_ntop(AF_INET, tmpAddrPtr, addressBuffer, INET_ADDRSTRLEN);
-            // memcpy(addressBuffer, "223.5.5.5", strlen("223.5.5.5"));        // 测试用
+            // memcpy(addressBuffer, "223.5.5.6", strlen("223.5.5.5"));        // 测试用
             printf("[%s] Address %s\n", ifa->ifa_name, addressBuffer);
             this->valid_ipwan = ip_valid(addressBuffer);
             printf("[%s] ipv4 wan ?: %d\n", __func__, this->valid_ipwan);
@@ -233,7 +239,8 @@ void Ipaddress::check_local_ip()
 
 void check_demo_http_check()
 {
-    string domain = "dearl.top";
+    int ret = 0;
+    string domain = _MACRO_TOP_DOMAIN_URL;
     _IPv4 &ip_v4 = _IPv4::getInstance(domain);
     _IPv6 &ip_v6 = _IPv6::getInstance(domain);
 
@@ -242,9 +249,6 @@ void check_demo_http_check()
 
     ip_v4.check_nat_wan_ip();
     ip_v6.check_nat_wan_ip();
-
-    ip_v4.match_wanip_with_localip();
-    ip_v6.match_wanip_with_localip();
 
 
     cout << "===================" << endl;

@@ -54,6 +54,12 @@ public:
         return instance;
     }
 
+    static _IPv4 &getInstance()
+    {
+        return getInstance("");
+    }
+
+
 
     void check_nat_wan_ip() ;
     void check_domain_ip() ;

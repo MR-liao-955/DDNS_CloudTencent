@@ -82,7 +82,6 @@ string sha256Hex(const string &str) {
     return NewString;
 }
 
-
 // curl 写回调，用于接收服务器返回的数据
 static size_t record_info_write_cb(void *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -91,17 +90,6 @@ static size_t record_info_write_cb(void *contents, size_t size, size_t nmemb, vo
     output->append(static_cast<char *>(contents), totalSize);
     return totalSize;
 }
-
-int cloudTencent_dnspod::set_ipv4_dns_record(string sub_domain)
-{
-
-}
-
-int cloudTencent_dnspod::set_ipv6_dns_record(string sub_domain)
-{
-
-}
-
 
 void cloudTencent_dnspod::generate_http_header(curl_slist **headers, string action)
 {
@@ -291,6 +279,47 @@ bool cloudTencent_dnspod::dnspod_record_list()
         payload = "{\"Domain\": \"" + domain_name + "\", \"SubDomain\": \"" + domain_subname + "\"}";
     }
 
+    printf("[%s] payload:[%s]\n", __func__, payload.data());
+    // 生成 authorization 用于请求头
+    generate_http_authorization("POST",payload);
+
+    generate_http_header(&headers, request_action);
+
+    string response = curl_request_post(url.data(), payload.data(), 2, headers, (curl_cb )record_info_write_cb);
+
+    printf("[%s] done !\n", __func__);
+
+    // return tencentcloud_decode_domain_list(response, this);
+    return true;
+}
+
+
+
+// DescribeRecordLineList
+/**
+ * @brief: 获取解析记录列表, 主要为了获取 LineList, 当然，当前不需要。使用默认即可。
+ * @doc: https://cloud.tencent.com/document/api/1427/56167
+ * @data: 2026/10/5
+ * @author: DearL - Arthur
+ * @TODO: 解析函数实现。
+ *
+*/
+bool cloudTencent_dnspod::dnspod_record_line_list()
+{
+    string payload;
+    struct curl_slist *headers = NULL;
+
+    request_action = "DescribeRecordLineList";
+
+    // 需要参数： Domain + DomainGrade
+    string url = "https://" TENCENT_REQUEST_URL;
+    if  (domain_subname.empty()){
+
+        payload = "{\"Domain\": \"" + domain_name + "\"}";
+    }else{
+
+        payload = "{\"Domain\": \"" + domain_name + "\", \"DomainGrade\": \"" + domain_grade + "\"}";
+    }
 
     // 生成 authorization 用于请求头
     generate_http_authorization("POST",payload);
@@ -304,6 +333,9 @@ bool cloudTencent_dnspod::dnspod_record_list()
     // return tencentcloud_decode_domain_list(response, this);
     return true;
 }
+
+
+
 
 // DescribeRecordFilterList
 bool cloudTencent_dnspod::dnspod_record_list_filter()
@@ -328,4 +360,100 @@ bool cloudTencent_dnspod::dnspod_record_list_filter()
     printf("[%s] done !\n", __func__);
 
     return tencentcloud_decode_record_list_filter(response, this);
+}
+
+
+// ModifyRecord
+int cloudTencent_dnspod::dnspod_record_modify(ip_type_t ip_type, string ip_addr)
+{
+    string payload;
+    struct curl_slist *headers = NULL;
+
+    request_action = "ModifyRecord";
+
+    /*
+        payload 所需参数
+        -------------------------------
+        Domain -- String
+        RecordType  -- String  比如 "A"    "AAAA"
+        RecordLine  -- String  比如 "默认"
+        Value       -- String
+        RecordId    -- Integer
+        SubDomain   -- String
+    */
+    uint32_t record_id = (ip_type == CLASS_IPV6) ? record_id_ipv6 : record_id_ipv4;
+    string record_type = (ip_type == CLASS_IPV6) ? "AAAA" : "A";
+
+    string url = "https://" TENCENT_REQUEST_URL;
+    payload = "{\"Domain\": \"" + domain_name
+            + "\", \"RecordType\": \"" + record_type
+            + "\", \"RecordLine\": \"默认"
+            + "\", \"Value\": \"" +  ip_addr
+            + "\", \"RecordId\": " +  to_string(record_id);
+
+    if  (domain_subname.empty())
+        payload += "}";
+    else{
+        payload = payload  + "\", \"SubDomain\": \"" +  domain_subname
+            + "\"}";
+    }
+
+    printf("[%s] payload:[%s]\n", __func__, payload.data());
+    generate_http_authorization("POST",payload);
+
+    generate_http_header(&headers, request_action);
+
+    string response = curl_request_post(url.data(), payload.data(), 2, headers, (curl_cb )record_info_write_cb);
+
+    printf("[%s] done !\n", __func__);
+
+    return _RETURN_SUCC;
+
+}
+
+
+/**
+ * @brief: 修改解析记录 ModifyTXTRecord
+ * @param ip_type: IP 类型
+ * @return: 0 表示成功，非 0 表示失败
+ * @status: TODO::未完成！！！ 此接口暂时不启用。
+ */
+int cloudTencent_dnspod::dnspod_record_TXT_modify(ip_type_t ip_type, string ip_addr)
+{
+    string payload;
+    struct curl_slist *headers = NULL;
+
+    request_action = "ModifyTXTRecord";
+
+    /*
+        payload 所需参数
+        1. Domain -- String
+        2. Value -- String
+        3. RecordLine -- String
+        4. RecordId -- Integer
+        SubDomain -- String
+    */
+    uint32_t record_id = (ip_type == CLASS_IPV6) ? record_id_ipv6 : record_id_ipv4;
+
+    string url = "https://" TENCENT_REQUEST_URL;
+    if  (domain_subname.empty())
+        payload = "{\"Domain\": \"" + domain_name + "\"}";
+    else
+        payload = "{\"Domain\": \"" + domain_name
+                    + "\", \"SubDomain\": \"" + domain_subname
+                    + "\", \"Value\": \"" +  ip_addr
+                    + "\", \"RecordLine\": \"默认"
+                    + "\", \"RecordId\": " +  to_string(record_id)
+                    + "}";
+
+    printf("[%s] payload:[%s]\n", __func__, payload.data());
+    generate_http_authorization("POST",payload);
+
+    generate_http_header(&headers, request_action);
+
+    string response = curl_request_post(url.data(), payload.data(), 2, headers, (curl_cb )record_info_write_cb);
+
+    printf("[%s] done !\n", __func__);
+
+    return _RETURN_SUCC;
 }

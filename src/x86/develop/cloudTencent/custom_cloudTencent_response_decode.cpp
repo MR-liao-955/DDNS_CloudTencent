@@ -26,6 +26,8 @@ bool tencentcloud_decode_domain_list(string src, cloudTencent_dnspod *dnspod)
     root = tretap_CJson_Parse(src.c_str());
     if (!root) { fprintf(stderr, "[%s] JSON parse failed.\n", __func__); return false; }
 
+    string temp = dnspod->domain_subname.empty()? "@": dnspod->domain_subname.c_str();
+
     FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(root, "Response"), second);
     FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(second, "DomainList"), third);
     if(third->type == tretap_CJson_Array){
@@ -36,7 +38,7 @@ bool tencentcloud_decode_domain_list(string src, cloudTencent_dnspod *dnspod)
             FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(domain, "Name"), fourth);
             if(fourth->type == tretap_CJson_String
                 && fourth->valuestring
-                && strcmp(fourth->valuestring, dnspod->domain_name.c_str()) == 0)
+                && strcmp(fourth->valuestring, temp.c_str()) == 0)
             {
                     printf("[%s] domain: %s\n", __func__, dnspod->domain_name.c_str());
                     // 保存 DomainID
@@ -72,6 +74,8 @@ bool tencentcloud_decode_record_list_filter(string src, cloudTencent_dnspod *dns
     root = tretap_CJson_Parse(src.c_str());
     if (!root) { fprintf(stderr, "[%s] JSON parse failed.\n", __func__); return false; }
 
+    string temp = dnspod->domain_subname.empty()? "@": dnspod->domain_subname.c_str();
+
     FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(root, "Response"), second);
     FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(second, "RecordList"), third);
     if(third->type == tretap_CJson_Array){
@@ -82,7 +86,7 @@ bool tencentcloud_decode_record_list_filter(string src, cloudTencent_dnspod *dns
             FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(domain, "Name"), fourth);
             if(fourth->type == tretap_CJson_String
                 && fourth->valuestring
-                && strcmp(fourth->valuestring, dnspod->domain_subname.c_str()) == 0)
+                && strcmp(fourth->valuestring, temp.c_str()) == 0)
             {
                 // A 记录
                 FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(domain, "Type"), fourth);

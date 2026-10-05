@@ -31,6 +31,8 @@ int main() {
     std::cout << "hello world ! ~~~" << std::endl;
 
     // 检查是否有子类域名
+    _IPv4 &ip_v4 = _IPv4::getInstance(_MACRO_TOP_DOMAIN_URL);
+    _IPv6 &ip_v6 = _IPv6::getInstance(_MACRO_TOP_DOMAIN_URL);
 
     // 本地 IP 检查
     check_demo_http_check();
@@ -40,12 +42,21 @@ int main() {
 
     dnspod.dnspod_domain_list();
 
-    // dnspod.dnspod_record_list();
+    dnspod.dnspod_record_list();     // 此函数暂时无作用
+    // dnspod.dnspod_record_line_list();
 
     dnspod.dnspod_record_list_filter();
 
-    _IPv4::getInstance("dearl.top").check_nat_wan_ip();
-    _IPv6::getInstance("dearl.top").check_nat_wan_ip();
+    // 如果是 本地IP 是公网 IP
+    if(_RETURN_SUCC == ip_v4.match_wanip_with_localip()){
+        // dnspod.dnspod_record_TXT_modify(cloudTencent_dnspod::CLASS_IPV4, ip_v4.ip_ddns_modify);
+        dnspod.dnspod_record_modify(cloudTencent_dnspod::CLASS_IPV4, ip_v4.ip_ddns_modify);
+    }
 
+
+    if(_RETURN_SUCC == ip_v6.match_wanip_with_localip()){
+        // dnspod.dnspod_record_TXT_modify(cloudTencent_dnspod::CLASS_IPV6, ip_v6.ip_ddns_modify);
+        dnspod.dnspod_record_modify(cloudTencent_dnspod::CLASS_IPV6, ip_v6.ip_ddns_modify);
+    }
 
 }
