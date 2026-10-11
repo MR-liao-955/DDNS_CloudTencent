@@ -6,11 +6,19 @@
 #include <cstring>
 #include <cstdlib>
 
+#include <vector>
+
 #include <curl/curl.h>
 #include "config.h"
 
 #pragma once
 using namespace std;
+
+typedef struct{
+    uint64_t id;
+    string value;
+    string type;    // A AAAA
+}record_list_t;
 
 class cloudTencent_dnspod
 {
@@ -26,32 +34,26 @@ public:
         CLASS_IPV4
     }ip_type_t;
 
-    uint32_t domain_id;
-    uint32_t record_id_ipv4;
-    string record_ipv4;
-    uint32_t record_id_ipv6;
-    string record_ipv6;
+    std::vector<record_list_t> record_ipv4;
+    std::vector<record_list_t> record_ipv6;
+
+    uint64_t domain_id;
     string domain_grade;
-    string domain_name;
-    string domain_subname;
 
-    // 子域名记录数组
     int dnspod_record_TXT_modify(ip_type_t ip_type, string ip_addr);
-
     int dnspod_record_modify(ip_type_t ip_type, string ip_addr);
-
     bool dnspod_domain_list();
     bool dnspod_record_list();
     bool dnspod_record_line_list();
     bool dnspod_record_list_filter();
+    bool dnspod_record_delete(string domain, uint32_t record_id);   //
+    void record_delete_remain_one(void);
 
 private:
     /*  https 连接时认证使用  */
     string request_authorization;
     string security_id;
     string security_key;
-    string security_key_path;
-    string request_action;
     string request_version;
     string request_time_utc;
     uint64_t request_timestamp;
@@ -62,17 +64,15 @@ private:
     cloudTencent_dnspod()
     {
         domain_id = 0;
-        domain_name = _MACRO_TOP_DOMAIN_URL;
-        domain_subname = "";
-        security_key_path = TENCENT_SECURITYKEY_PATH;
         request_version = TENCENT_REQUEST_DEF_VERSION;
-        request_action = TENCENT_REQUEST_DEF_ACTION;
         request_content_type = TENCENT_REQUEST_DEF_CONTENT_TYPE;
+        file_security_config_read();
     };
 
     cloudTencent_dnspod(const cloudTencent_dnspod &) = delete;
     cloudTencent_dnspod &operator=(const cloudTencent_dnspod &) = delete;
 
+    void file_security_config_read(void);
     void generate_http_authorization(string method, string payload);
     void generate_http_header(curl_slist **headers, string action);
 

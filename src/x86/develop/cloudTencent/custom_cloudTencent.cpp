@@ -82,6 +82,38 @@ string sha256Hex(const string &str) {
     return NewString;
 }
 
+void cloudTencent_dnspod::file_security_config_read(void){
+
+    /* 读取文件中的 keyid 和 key */
+    std::stringstream file_read;
+    std::ifstream file(CONFIG_PATH);
+    file_read << file.rdbuf();
+    std::string config = file_read.str();
+    std::stringstream ss(config);
+    std::string line;
+    while (std::getline(ss, line)) {
+        // Windows 文本文件可能存在 \r
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
+        }
+        // ';' 是配置项结束符
+        size_t pos = line.find(';');
+        if (pos != std::string::npos) {
+            line = line.substr(0, pos);
+        }
+
+        if (line.compare(0, 4, "key=") == 0) {
+            security_key = line.substr(4);
+        }
+        else if (line.compare(0, 6, "keyid=") == 0) {
+            security_id = line.substr(6);
+        }
+    }
+
+    DEBUG_PRINT("secret_key: %s\n", security_key.c_str());
+    DEBUG_PRINT("secret_id : %s\n", security_id.c_str());
+}
+
 // curl 写回调，用于接收服务器返回的数据
 static size_t record_info_write_cb(void *contents, size_t size, size_t nmemb, void *userp)
 {
@@ -113,8 +145,6 @@ void cloudTencent_dnspod::generate_http_header(curl_slist **headers, string acti
     *headers = curl_slist_append( *headers, "X-TC-Language: zh-CN");
 
     *headers = curl_slist_append( *headers, "X-TC-Token: ");    //string tokenHeader = "X-TC-Token: " + TOKEN;
-    printf("[%s] execute curl_request_post\n", __func__);
-
 }
 
 /***
@@ -134,35 +164,6 @@ void cloudTencent_dnspod::generate_http_authorization(string method, string payl
     strftime(timestamp_str,sizeof(timestamp_str),"%Y-%m-%d",&utc_time);
     request_timestamp= t;
     request_time_utc = timestamp_str;
-
-    /* 读取文件中的 keyid 和 key */
-    std::stringstream file_read;
-    std::ifstream file(security_key_path.c_str());
-    file_read << file.rdbuf();
-    std::string config = file_read.str();
-    std::stringstream ss(config);
-    std::string line;
-    while (std::getline(ss, line)) {
-        // Windows 文本文件可能存在 \r
-        if (!line.empty() && line.back() == '\r') {
-            line.pop_back();
-        }
-        // ';' 是配置项结束符
-        size_t pos = line.find(';');
-        if (pos != std::string::npos) {
-            line = line.substr(0, pos);
-        }
-
-        if (line.compare(0, 4, "key=") == 0) {
-            security_key = line.substr(4);
-        }
-        else if (line.compare(0, 6, "keyid=") == 0) {
-            security_id = line.substr(6);
-        }
-    }
-
-    printf("[%s] secret_key: %s\n", __func__, security_key.c_str());
-    printf("[%s] secret_id : %s\n", __func__, security_id.c_str());
 
     // ************* 步骤 1：拼接规范请求串 *************
     string httpRequestMethod = method;
@@ -194,38 +195,54 @@ void cloudTencent_dnspod::generate_http_authorization(string method, string payl
     string kSigning = HmacSha256(kService, "tc3_request");
     string signature = HexEncode(HmacSha256(kSigning, stringToSign));
     // ************* 步骤 4：拼接 Authorization *************
-    request_authorization = algorithm + " " + "Credential=" TENCENT_REQUEST_DEF_SECRETID "/" + credentialScope + ", "
+    request_authorization = algorithm + " " + "Credential=" + security_id + "/" + credentialScope + ", "
                         + "SignedHeaders=" + signedHeaders + ", " + "Signature=" + signature;
 
 #if 0
-    printf("\n========== TC3 DEBUG ==========\n");
-    printf("httpRequestMethod = [%s]\n", httpRequestMethod.c_str());
-    printf("canonicalUri      = [%s]\n", canonicalUri.c_str());
-    printf("canonicalQuery    = [%s]\n", canonicalQueryString.c_str());
-    printf("canonicalHeaders  = [%s]\n", canonicalHeaders.c_str());
-    printf("signedHeaders     = [%s]\n", signedHeaders.c_str());
-    printf("payload           = [%s]\n", payload.c_str());
-    printf("hashedPayload     = [%s]\n", hashedRequestPayload.c_str());
+    DEBUG_PRINT("\n========== TC3 DEBUG ==========\n");
+    DEBUG_PRINT("httpRequestMethod = [%s]\n", httpRequestMethod.c_str());
+    DEBUG_PRINT("canonicalUri      = [%s]\n", canonicalUri.c_str());
+    DEBUG_PRINT("canonicalQuery    = [%s]\n", canonicalQueryString.c_str());
+    DEBUG_PRINT("canonicalHeaders  = [%s]\n", canonicalHeaders.c_str());
+    DEBUG_PRINT("signedHeaders     = [%s]\n", signedHeaders.c_str());
+    DEBUG_PRINT("payload           = [%s]\n", payload.c_str());
+    DEBUG_PRINT("hashedPayload     = [%s]\n", hashedRequestPayload.c_str());
 
-    printf("\n----- canonicalRequest -----\n");
-    printf("%s", canonicalRequest.c_str());
-    printf("\n----- canonicalRequest END -----\n");
+    DEBUG_PRINT("\n----- canonicalRequest -----\n");
+    DEBUG_PRINT("%s", canonicalRequest.c_str());
+    DEBUG_PRINT("\n----- canonicalRequest END -----\n");
 
-    printf("request_timestamp = [%ld]\n", request_timestamp);
-    printf("request_time_utc  = [%s]\n", request_time_utc.c_str());
-    printf("credentialScope   = [%s]\n", credentialScope.c_str());
+    DEBUG_PRINT("request_timestamp = [%ld]\n", request_timestamp);
+    DEBUG_PRINT("request_time_utc  = [%s]\n", request_time_utc.c_str());
+    DEBUG_PRINT("credentialScope   = [%s]\n", credentialScope.c_str());
 
-    printf("hashedCanonicalRequest = [%s]\n",
+    DEBUG_PRINT("hashedCanonicalRequest = [%s]\n",
         hashedCanonicalRequest.c_str());
 
-    printf("\n----- stringToSign -----\n");
-    printf("%s", stringToSign.c_str());
-    printf("\n----- stringToSign END -----\n");
+    DEBUG_PRINT("\n----- stringToSign -----\n");
+    DEBUG_PRINT("%s", stringToSign.c_str());
+    DEBUG_PRINT("\n----- stringToSign END -----\n");
 
-    printf("========== TC3 DEBUG END ==========\n\n");
+    DEBUG_PRINT("========== TC3 DEBUG END ==========\n\n");
 #endif
 }
 
+void cloudTencent_dnspod::record_delete_remain_one()
+{
+
+    // 跳过第一个元素。
+    if(record_ipv4.size() > 1){
+        for(auto it = record_ipv4.begin() + 1; it != record_ipv4.end() ; ++it){
+            dnspod_record_delete(g_file_config.domain_name, it->id);
+        }
+    }
+
+    if(record_ipv6.size() > 1){
+        for(auto it = record_ipv6.begin() + 1; it != record_ipv6.end() ; ++it){
+            dnspod_record_delete(g_file_config.domain_name, it->id);
+        }
+    }
+}
 
 
 /**
@@ -241,16 +258,16 @@ bool cloudTencent_dnspod::dnspod_domain_list()
 
     string url = "https://" TENCENT_REQUEST_URL;
 
-    request_action = "DescribeDomainList";
+    string request_action = "DescribeDomainList";
 
     // 生成 authorization 用于请求头
     generate_http_authorization("POST","{}");
 
     generate_http_header(&headers, request_action);
 
-    string response = curl_request_post(url.data(), "{}", 2, headers, (curl_cb )record_info_write_cb);
+    string response = curl_request(url.data(), "POST", "{}", 2, headers, (curl_cb )record_info_write_cb);
 
-    printf("[%s] done !\n", __func__);
+    DEBUG_PRINT("done !\n");
 
     return tencentcloud_decode_domain_list(response, this);
 }
@@ -268,28 +285,27 @@ bool cloudTencent_dnspod::dnspod_record_list()
     string payload;
     struct curl_slist *headers = NULL;
 
-    request_action = "DescribeRecordList";
+    string request_action = "DescribeRecordList";
 
     string url = "https://" TENCENT_REQUEST_URL;
-    if  (domain_subname.empty()){
+    if  (g_file_config.domain_subname.empty()){
 
-        payload = "{\"Domain\": \"" + domain_name + "\"}";
+        payload = "{\"Domain\": \"" + g_file_config.domain_name + "\"}";
     }else{
 
-        payload = "{\"Domain\": \"" + domain_name + "\", \"SubDomain\": \"" + domain_subname + "\"}";
+        payload = "{\"Domain\": \"" + g_file_config.domain_name + "\", \"SubDomain\": \"" + g_file_config.domain_subname + "\"}";
     }
 
-    printf("[%s] payload:[%s]\n", __func__, payload.data());
+    DEBUG_PRINT("payload:[%s]\n", payload.data());
     // 生成 authorization 用于请求头
     generate_http_authorization("POST",payload);
 
     generate_http_header(&headers, request_action);
 
-    string response = curl_request_post(url.data(), payload.data(), 2, headers, (curl_cb )record_info_write_cb);
+    string response = curl_request(url.data(), "POST", payload.data(), 2, headers, (curl_cb )record_info_write_cb);
 
-    printf("[%s] done !\n", __func__);
+    DEBUG_PRINT("done !\n");
 
-    // return tencentcloud_decode_domain_list(response, this);
     return true;
 }
 
@@ -309,16 +325,16 @@ bool cloudTencent_dnspod::dnspod_record_line_list()
     string payload;
     struct curl_slist *headers = NULL;
 
-    request_action = "DescribeRecordLineList";
+    string request_action = "DescribeRecordLineList";
 
     // 需要参数： Domain + DomainGrade
     string url = "https://" TENCENT_REQUEST_URL;
-    if  (domain_subname.empty()){
+    if  (g_file_config.domain_subname.empty()){
 
-        payload = "{\"Domain\": \"" + domain_name + "\"}";
+        payload = "{\"Domain\": \"" + g_file_config.domain_name + "\"}";
     }else{
 
-        payload = "{\"Domain\": \"" + domain_name + "\", \"DomainGrade\": \"" + domain_grade + "\"}";
+        payload = "{\"Domain\": \"" + g_file_config.domain_name + "\", \"DomainGrade\": \"" + domain_grade + "\"}";
     }
 
     // 生成 authorization 用于请求头
@@ -326,50 +342,97 @@ bool cloudTencent_dnspod::dnspod_record_line_list()
 
     generate_http_header(&headers, request_action);
 
-    string response = curl_request_post(url.data(), payload.data(), 2, headers, (curl_cb )record_info_write_cb);
+    string response = curl_request(url.data(), "POST", payload.data(), 2, headers, (curl_cb )record_info_write_cb);
 
-    printf("[%s] done !\n", __func__);
+    DEBUG_PRINT("done !\n");
 
-    // return tencentcloud_decode_domain_list(response, this);
     return true;
 }
 
 
 
 
-// DescribeRecordFilterList
+/**
+ * doc: https://cloud.tencent.com/document/product/1427/95521
+ */
 bool cloudTencent_dnspod::dnspod_record_list_filter()
 {
     string payload;
     struct curl_slist *headers = NULL;
 
-    request_action = "DescribeRecordFilterList";
+    string request_action = "DescribeRecordFilterList";
 
     string url = "https://" TENCENT_REQUEST_URL;
-    if  (domain_subname.empty())
-        payload = "{\"Domain\": \"" + domain_name + "\"}";
+    if  (g_file_config.domain_subname.empty())
+        payload = "{\"Domain\": \"" + g_file_config.domain_name + "\"}";
     else
-        payload = "{\"Domain\": \"" + domain_name + "\", \"SubDomain\": \"" + domain_subname + "\", \"IsExactSubDomain\": true}";
+        payload = "{\"Domain\": \"" + g_file_config.domain_name + "\", \"SubDomain\": \"" + g_file_config.domain_subname + "\", \"IsExactSubDomain\": true}";
+
+    DEBUG_PRINT("payload:[%s]\n", payload.data());
 
     generate_http_authorization("POST",payload);
 
     generate_http_header(&headers, request_action);
 
-    string response = curl_request_post(url.data(), payload.data(), 2, headers, (curl_cb )record_info_write_cb);
+    string response = curl_request(url.data(), "POST", payload.data(), 2, headers, (curl_cb )record_info_write_cb);
 
-    printf("[%s] done !\n", __func__);
+    DEBUG_PRINT("done !\n");
 
     return tencentcloud_decode_record_list_filter(response, this);
 }
 
 
-// ModifyRecord
+
+/**
+ * @brief: 根据record id 清理其它 A和 AAAA 记录的 record，只保留一个
+ *          先执行 dnspod_record_list_filter 记录所有对应 A 和 AAA 记录的 ID
+ * @param ip_type: IP 类型
+ * @doc: https://cloud.tencent.com/document/product/1427/56176
+ * @return: 0 表示成功，非 0 表示失败
+ * @status: TODO::未完成！！！ 此接口暂时不启用。
+ */
+bool cloudTencent_dnspod::dnspod_record_delete(string domain, uint32_t record_id)
+{
+    string payload;
+    struct curl_slist *headers = NULL;
+
+    string request_action = "DeleteRecord";
+
+    /*
+        payload 所需参数
+        Domain	是	String	域名   示例值：dnspod.cn
+        RecordId	是	Integer	记录 ID 。可以通过接口DescribeRecordList查到所有的解析记录列表以及对应的RecordId
+    */
+    string url = "https://" TENCENT_REQUEST_URL;
+
+    payload = "{\"Domain\": \"" + domain
+                + "\", \"RecordId\": " +  to_string(record_id)
+                + "}";
+
+    DEBUG_PRINT("payload:[%s]\n", payload.data());
+    generate_http_authorization("POST",payload);
+
+    generate_http_header(&headers, request_action);
+
+    string response = curl_request(url.data(), "POST", payload.data(), 2, headers, (curl_cb )record_info_write_cb);
+
+    DEBUG_PRINT("done !\n");
+
+    return true;
+}
+
+
+
+/**
+ * @doc: https://cloud.tencent.com/document/product/1427/56157
+ * @brief: 修改解析记录 ModifyRecord
+ * */
 int cloudTencent_dnspod::dnspod_record_modify(ip_type_t ip_type, string ip_addr)
 {
     string payload;
     struct curl_slist *headers = NULL;
 
-    request_action = "ModifyRecord";
+    string request_action = "ModifyRecord";
 
     /*
         payload 所需参数
@@ -381,31 +444,34 @@ int cloudTencent_dnspod::dnspod_record_modify(ip_type_t ip_type, string ip_addr)
         RecordId    -- Integer
         SubDomain   -- String
     */
-    uint32_t record_id = (ip_type == CLASS_IPV6) ? record_id_ipv6 : record_id_ipv4;
-    string record_type = (ip_type == CLASS_IPV6) ? "AAAA" : "A";
+   std::vector<record_list_t>&  record = (ip_type == CLASS_IPV6) ? record_ipv6 : record_ipv4;
+   if(record.empty()){
+       DEBUG_PRINT("record is empty, record id not found ~~\n");
+       return _RETURN_FAIL;
+    }
 
     string url = "https://" TENCENT_REQUEST_URL;
-    payload = "{\"Domain\": \"" + domain_name
-            + "\", \"RecordType\": \"" + record_type
+    payload = "{\"Domain\": \"" + g_file_config.domain_name
+            + "\", \"RecordType\": \"" + record[0].type
             + "\", \"RecordLine\": \"默认"
             + "\", \"Value\": \"" +  ip_addr
-            + "\", \"RecordId\": " +  to_string(record_id);
+            + "\", \"RecordId\": " +  to_string(record[0].id);
 
-    if  (domain_subname.empty())
+    if  (g_file_config.domain_subname.empty())
         payload += "}";
     else{
-        payload = payload  + "\", \"SubDomain\": \"" +  domain_subname
+        payload = payload  + ", \"SubDomain\": \"" +  g_file_config.domain_subname
             + "\"}";
     }
 
-    printf("[%s] payload:[%s]\n", __func__, payload.data());
+    DEBUG_PRINT("payload:[%s]\n", payload.data());
     generate_http_authorization("POST",payload);
 
     generate_http_header(&headers, request_action);
 
-    string response = curl_request_post(url.data(), payload.data(), 2, headers, (curl_cb )record_info_write_cb);
+    string response = curl_request(url.data(), "POST", payload.data(), 2, headers, (curl_cb )record_info_write_cb);
 
-    printf("[%s] done !\n", __func__);
+    DEBUG_PRINT("done !\n");
 
     return _RETURN_SUCC;
 
@@ -423,7 +489,7 @@ int cloudTencent_dnspod::dnspod_record_TXT_modify(ip_type_t ip_type, string ip_a
     string payload;
     struct curl_slist *headers = NULL;
 
-    request_action = "ModifyTXTRecord";
+    string request_action = "ModifyTXTRecord";
 
     /*
         payload 所需参数
@@ -433,27 +499,32 @@ int cloudTencent_dnspod::dnspod_record_TXT_modify(ip_type_t ip_type, string ip_a
         4. RecordId -- Integer
         SubDomain -- String
     */
-    uint32_t record_id = (ip_type == CLASS_IPV6) ? record_id_ipv6 : record_id_ipv4;
+    std::vector<record_list_t>&  record = (ip_type == CLASS_IPV6) ? record_ipv6 : record_ipv4;
+   if(record.empty()){
+       DEBUG_PRINT("record is empty, record id not found ~~\n");
+       return _RETURN_FAIL;
+    }
 
     string url = "https://" TENCENT_REQUEST_URL;
-    if  (domain_subname.empty())
-        payload = "{\"Domain\": \"" + domain_name + "\"}";
+    if  (g_file_config.domain_subname.empty())
+        payload = "{\"Domain\": \"" + g_file_config.domain_name + "\"}";
     else
-        payload = "{\"Domain\": \"" + domain_name
-                    + "\", \"SubDomain\": \"" + domain_subname
+        payload = "{\"Domain\": \"" + g_file_config.domain_name
+                    + "\", \"SubDomain\": \"" + g_file_config.domain_subname
                     + "\", \"Value\": \"" +  ip_addr
                     + "\", \"RecordLine\": \"默认"
-                    + "\", \"RecordId\": " +  to_string(record_id)
+                    + "\", \"RecordId\": " +  to_string(record[0].id)
                     + "}";
 
-    printf("[%s] payload:[%s]\n", __func__, payload.data());
+    DEBUG_PRINT("payload:[%s]\n", payload.data());
     generate_http_authorization("POST",payload);
 
     generate_http_header(&headers, request_action);
 
-    string response = curl_request_post(url.data(), payload.data(), 2, headers, (curl_cb )record_info_write_cb);
+    string response = curl_request(url.data(), "POST", payload.data(), 2, headers, (curl_cb )record_info_write_cb);
 
-    printf("[%s] done !\n", __func__);
+    DEBUG_PRINT("done !\n");
 
     return _RETURN_SUCC;
 }
+

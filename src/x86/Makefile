@@ -109,7 +109,7 @@ prep:
 
 # 清理目标和中间文件
 clean:
-	@rm -rf $(OBJ_DIR) $(TARGET_BIN_DIR)
+	@rm -rf $(OBJ_DIR) $(TARGET_BIN_DIR)/$(BIN_NAME)
 
 # 默认目标
 all: prep $(TARGET)

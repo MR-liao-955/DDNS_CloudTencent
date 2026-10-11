@@ -26,7 +26,7 @@ bool tencentcloud_decode_domain_list(string src, cloudTencent_dnspod *dnspod)
     root = tretap_CJson_Parse(src.c_str());
     if (!root) { fprintf(stderr, "[%s] JSON parse failed.\n", __func__); return false; }
 
-    string temp = dnspod->domain_subname.empty()? "@": dnspod->domain_subname.c_str();
+    string temp = g_file_config.domain_name;
 
     FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(root, "Response"), second);
     FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(second, "DomainList"), third);
@@ -40,15 +40,15 @@ bool tencentcloud_decode_domain_list(string src, cloudTencent_dnspod *dnspod)
                 && fourth->valuestring
                 && strcmp(fourth->valuestring, temp.c_str()) == 0)
             {
-                    printf("[%s] domain: %s\n", __func__, dnspod->domain_name.c_str());
+                    DEBUG_PRINT("domain: %s\n", g_file_config.domain_full.c_str());
                     // 保存 DomainID
                     FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(domain, "DomainId"), fourth);
-                    dnspod->domain_id = fourth->valueint;
-                    printf("[%s] DomainId=%u\n", __func__, dnspod->domain_name.c_str(), dnspod->domain_id);
+                    dnspod->domain_id = static_cast<uint64_t>(fourth->valueint);
+                    DEBUG_PRINT("DomainId=%llu\n", (unsigned long long)dnspod->domain_id);
 
                     FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(domain, "Grade"), fourth);
                     dnspod->domain_grade = fourth->valuestring;
-                    printf("[%s] Grade: %s\n", __func__, dnspod->domain_grade.data());
+                    DEBUG_PRINT("Grade: %s\n", dnspod->domain_grade.data());
             }
         }
     }
@@ -70,11 +70,12 @@ bool tencentcloud_decode_record_list_filter(string src, cloudTencent_dnspod *dns
     tretap_CJson *third;
     tretap_CJson *fourth;
     tretap_CJson *fifth;
+    record_list_t record_id;
 
     root = tretap_CJson_Parse(src.c_str());
     if (!root) { fprintf(stderr, "[%s] JSON parse failed.\n", __func__); return false; }
 
-    string temp = dnspod->domain_subname.empty()? "@": dnspod->domain_subname.c_str();
+    string temp = g_file_config.domain_subname.empty()? "@": g_file_config.domain_subname.c_str();
 
     FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(root, "Response"), second);
     FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(second, "RecordList"), third);
@@ -92,31 +93,43 @@ bool tencentcloud_decode_record_list_filter(string src, cloudTencent_dnspod *dns
                 FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(domain, "Type"), fourth);
 
                 if(strcmp(fourth->valuestring, "A") == 0){
-                    dnspod->record_ipv4.clear();
+                    record_id.id = 0;
+                    record_id.value.clear();
+                    record_id.type = "A";
                     FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(domain, "Value"), fifth);
-                    dnspod->record_ipv4 = fifth->valuestring;
-                    printf("[%s] A record: %s\n", __func__, dnspod->record_ipv4.c_str());
+                    record_id.value= fifth->valuestring;
+                    DEBUG_PRINT("A record: %s\n", record_id.value.data());
 
-                    dnspod->record_id_ipv4 = 0;
                     FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(domain, "RecordId"), fifth);
-                    dnspod->record_id_ipv4 = fifth->valueint;
-                    printf("[%s] A record ID: %u\n", __func__, dnspod->record_id_ipv4);
+                    record_id.id = static_cast<uint64_t>(fifth->valuedouble);
+                    DEBUG_PRINT("A record ID: %llu\n", (unsigned long long)record_id.id);
+                    dnspod->record_ipv4.push_back(record_id);
                 }
 
                 // AAAA 记录
                 if(strcmp(fourth->valuestring, "AAAA") == 0){
-                    dnspod->record_ipv6.clear();
+                    record_id.id = 0;
+                    record_id.value.clear();
+                    record_id.type = "AAAA";
                     FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(domain, "Value"), fifth);
-                    dnspod->record_ipv6 = fifth->valuestring;
-                    printf("[%s] AAAA record: %s\n", __func__, dnspod->record_ipv6.c_str());
+                    record_id.value = fifth->valuestring;
+                    DEBUG_PRINT("AAAA record: %s\n", record_id.value.c_str());
 
-                    dnspod->record_id_ipv6 = 0;
                     FUNC_JSON_CHECK(tretap_CJson_GetObjectItem(domain, "RecordId"), fifth);
-                    dnspod->record_id_ipv6 = fifth->valueint;
-                    printf("[%s] AAAA record ID: %u\n", __func__, dnspod->record_id_ipv6);
+                    record_id.id = static_cast<uint64_t>(fifth->valuedouble);
+                    DEBUG_PRINT("AAAA record ID: %llu\n", (unsigned long long)record_id.id);
+                    dnspod->record_ipv6.push_back(record_id);
                 }
             }
         }
+    }
+
+    for(auto& record : dnspod->record_ipv4){
+        DEBUG_PRINT("type: %s, recordid: %llu, value: %s\n", record.type.c_str(), (unsigned long long)record.id, record.value.c_str());
+    }
+
+    for(auto& record : dnspod->record_ipv6){
+        DEBUG_PRINT("type: %s, recordid: %llu, value: %s\n", record.type.c_str(), (unsigned long long)record.id, record.value.c_str());
     }
 
     tretap_CJson_Delete(root);

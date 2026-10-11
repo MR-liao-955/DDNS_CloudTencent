@@ -1,0 +1,6 @@
+key=u05EJIC1kLqBJE9wYyDG6i7KKSOEzazQ;
+keyid=AKIDthIiyV1UrESWRAlRAzpW5Tn7VwGWq6FE;
+domain_name=dearl.top;
+domain_subname=video;
+check_ip_url_ipv4=https://ip.3322.net/;
+check_ip_url_ipv6=https://myip.ipip.net/s;

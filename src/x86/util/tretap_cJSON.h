@@ -1,16 +1,16 @@
 /*
   Copyright (c) 2009 Dave Gamble
- 
+
   Permission is hereby granted, free of charge, to any person obtaining a copy
   of this software and associated documentation files (the "Software"), to deal
   in the Software without restriction, including without limitation the rights
   to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
   copies of the Software, and to permit persons to whom the Software is
   furnished to do so, subject to the following conditions:
- 
+
   The above copyright notice and this permission notice shall be included in
   all copies or substantial portions of the Software.
- 
+
   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
   FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -36,7 +36,7 @@ extern "C"
 #define tretap_CJson_String 4
 #define tretap_CJson_Array 5
 #define tretap_CJson_Object 6
-	
+
 #define tretap_CJson_IsReference 256
 #define tretap_CJson_StringIsConst 512
 
@@ -83,7 +83,7 @@ extern tretap_CJson *tretap_CJson_GetObjectItem(tretap_CJson *object,const char 
 
 /* For analysing failed parses. This returns a pointer to the parse error. You'll probably need to look a few chars back to make sense of it. Defined when tretap_CJson_Parse() returns 0. 0 when tretap_CJson_Parse() succeeds. */
 extern const char *tretap_CJson_GetErrorPtr(void);
-	
+
 /* These calls create a tretap_CJson item of the appropriate type. */
 extern tretap_CJson *tretap_CJson_CreateNull(void);
 extern tretap_CJson *tretap_CJson_CreateTrue(void);
@@ -113,7 +113,7 @@ extern tretap_CJson *tretap_CJson_DetachItemFromArray(tretap_CJson *array,int wh
 extern void tretap_CJson_DeleteItemFromArray(tretap_CJson *array,int which);
 extern tretap_CJson *tretap_CJson_DetachItemFromObject(tretap_CJson *object,const char *string);
 extern void tretap_CJson_DeleteItemFromObject(tretap_CJson *object,const char *string);
-	
+
 /* Update array items. */
 extern void tretap_CJson_InsertItemInArray(tretap_CJson *array,int which,tretap_CJson *newitem);	/* Shifts pre-existing items to the right. */
 extern void tretap_CJson_ReplaceItemInArray(tretap_CJson *array,int which,tretap_CJson *newitem);

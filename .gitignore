@@ -76,3 +76,4 @@ openssl-1.1.1*
 _release/
 build/
 lib_src
+./ddns_config.txt

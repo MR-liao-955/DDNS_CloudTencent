@@ -8,6 +8,6 @@ typedef  size_t (*curl_cb)(void *contents, size_t size, size_t nmemb, void *user
 
 
 
-std::string curl_request_post(const char* url, const char* post_fields, uint16_t post_fields_size, struct curl_slist *headers, curl_cb cb);
+std::string curl_request(const char* url, const char* method, const char* post_fields, uint16_t post_fields_size, struct curl_slist *headers, curl_cb cb);
 
 

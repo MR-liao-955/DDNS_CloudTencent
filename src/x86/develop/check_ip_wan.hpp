@@ -1,11 +1,11 @@
-#ifndef _HTTP_CHECK_IP_WAN_H
-#define _HTTP_CHECK_IP_WAN_H
 #include "config.h"
 
 using namespace std;
 
 #define _RETURN_SUCC 0
 #define _RETURN_FAIL -1
+
+#pragma once
 
 
 void check_demo_http_check();
@@ -31,6 +31,8 @@ public:
     void check_local_ip();
 
     int match_wanip_with_localip();
+
+
 
     void print_domain() const { cout << domain << endl; }
     string get_domain() const { return domain; }
@@ -58,7 +60,6 @@ public:
     {
         return getInstance("");
     }
-
 
 
     void check_nat_wan_ip() ;
@@ -101,4 +102,3 @@ private:
     }
 };
 
-#endif

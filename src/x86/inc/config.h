@@ -1,26 +1,36 @@
 #ifndef _CONFIG_H
 #define _CONFIG_H
 
+#include <string.h>
+#include <iostream>
 
-#define _MACRO_TOP_DOMAIN_URL       "dearl.top"
-#define _MACRO_NAS_DOMAIN           "nas"
-#define _MACRO_MOV_DOMAIN           "mov"
-#define _MACRO_WWW_DOMAIN           "www"
-#define _MACRO_NAS_DOMAIN_URL           _MACRO_NAS_DOMAIN "." _MACRO_TOP_DOMAIN_URL
-#define _MACRO_MOV_DOMAIN_URL           _MACRO_MOV_DOMAIN "." _MACRO_TOP_DOMAIN_URL
-#define _MACRO_WWW_DOMAIN_URL           _MACRO_WWW_DOMAIN "." _MACRO_TOP_DOMAIN_URL
+#define VERSION                                 "0.2.0"
 
-// #define _MACRO_SERVER_GET_WANIP     "https://ip.sb"
-// #define _MACRO_SERVER_GET_WANIP     "https://myip.ipip.net/s"
-#define _MACRO_SERVER_GET_WANIP     "https://ip.3322.net/"
+#if 1
+#define DEBUG_PRINT(fmt, ...)  printf("[DEBUG] [%s][%d] " fmt "\n", __func__, __LINE__, ##__VA_ARGS__)
+#else
+#define DEBUG_PRINT(fmt, ...) do {...}while(0);
+#endif
 
-
+#define CONFIG_PATH                             "./ddns_config.txt"
 #define TENCENT_REQUEST_URL                     "dnspod.tencentcloudapi.com"
-
-#define TENCENT_SECURITYKEY_PATH                "/home/workspace/tencent_cloud_security_key.txt"
 #define TENCENT_REQUEST_DEF_VERSION             "2021-03-23"
-#define TENCENT_REQUEST_DEF_ACTION              "DescribeDomainList"
-#define TENCENT_REQUEST_DEF_SECRETID            "AKIDthIiyV1UrESWRAlRAzpW5Tn7VwGWq6FE"      // 根据创建的 ID 来确定。
 #define TENCENT_REQUEST_DEF_CONTENT_TYPE        "application/json"
 
+/*
+    仅允许修改一个子域名 的 IP
+    https://ip.3322.net/        // 推荐 Ipv4用
+    https://myip.ipip.net/s     // Ipv6拿不到时会使用 IPv4
+    https://ip.sb
+*/
+typedef struct {
+    std::string domain_name;
+    std::string domain_subname;
+    std::string domain_full;
+
+    std::string check_ip_url_ipv4;  //https://ip.3322.net/
+    std::string check_ip_url_ipv6;  //https://myip.ipip.net/s
+} config_t;
+
+extern config_t g_file_config;
 #endif
