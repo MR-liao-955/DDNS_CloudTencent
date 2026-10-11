@@ -23,9 +23,20 @@
 #include "config.h"
 #include "check_ip_wan.hpp"
 #include "curl_request_api.hpp"
+#include "tretap_cJSON.h"
 
 // curl 获取IP
 #include <curl/curl.h>
+
+#define FUNC_JSON_CHECK(func, r) \
+    do{ \
+        r = func; \
+        if(!r) {\
+            printf("[%s: %d] fail \n", #func, __LINE__);\
+            return false; \
+         }\
+    }while(0);
+
 
 
 Ipaddress *ip_v4 = NULL;
@@ -42,24 +53,47 @@ size_t check_wan_ip_handle_cb(void* contents, size_t size, size_t nmemb, std::st
     return totalSize;
 }
 
+/**
+ * @brief: JSON 解析函数，解析服务器返回的string是否是当前公网
+ *
+ *
+ */
+static bool decode_ipwan(Ipaddress *ipaddr, string src)
+{
+    DEBUG_PRINT("response:[%s]\n", src.data());
+    while (!src.empty() &&
+        (src.back() == '\n' ||
+            src.back() == '\r'))
+    {
+        src.pop_back();
+    }
+    ipaddr->ip_wan = src;
+    return true;
+}
+
+
 
 void _IPv4::check_nat_wan_ip()
 {
+    string resp;
     struct curl_slist *headers = NULL;
     const char * url = g_file_config.check_ip_url_ipv4.c_str();
 
     headers = curl_slist_append(headers, ": ");
     curl_request(url, "GET", NULL, 2, headers, (curl_cb )check_wan_ip_handle_cb);
+    decode_ipwan(this, resp);
     DEBUG_PRINT("ipv4 checkdone !\n");
 }
 
 void _IPv6::check_nat_wan_ip()
 {
+    string resp;
     struct curl_slist *headers = NULL;
     const char * url = g_file_config.check_ip_url_ipv6.c_str();
 
     headers = curl_slist_append(headers, ": ");
-    curl_request(url, "GET", NULL, 2, headers, (curl_cb )check_wan_ip_handle_cb);
+    resp = curl_request(url, "GET", NULL, 2, headers, (curl_cb )check_wan_ip_handle_cb);
+    decode_ipwan(this, resp);
     DEBUG_PRINT("ipv6 check done !\n");
 }
 
