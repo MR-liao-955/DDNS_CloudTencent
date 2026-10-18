@@ -1,17 +1,18 @@
 ### 腾讯云更新DDNS
 
+[toc]
+
 > 概览
 
  腾讯云服务器要过期了，而且硬盘 80G 不够用, 带宽8M 虽然挺多,但是也就博客能用,考虑使用家用宽带的 IPv6.
 
  该项目不仅局限于x86, 亦适用于 Arm系列的 Linux, 但本人精力和能力有限, 仅仅提供适用我自己的架构的软件.
 
-这部分并非完全是
 
 > 准备工作
 
 
-VMware + ubuntu1804.6 + vscode ssh
+~~VMware + ubuntu1804.6 + vscode ssh~~
 ```bash
 软件部分: 版本 (当前版本依赖可能存在问题)
 openssl  openssl-3.4.0
@@ -29,6 +30,16 @@ Features: AsynchDNS IPv6 Largefile NTLM NTLM_WB SSL TLS-SRP UnixSockets HTTPS-pr
 ```
 
 
+```bash
+
+已经使用
+openssl  openssl-3.4.0
+curl	curl-7.58.0
+成功编译出程序。如果遇到版本问题自行 AI 解决吧。
+
+```
+
+
 > 展望
 
 这个 DDNS 定时软件是给我的 pve(proxmox) 使用,
@@ -38,16 +49,11 @@ pve 搭建 jellyfin 影音服务器用。
 再买一个电视机盒子搞个音乐服务器
 
 
-
-
 #### 一、x86 架构
 
 ##### 1. 编译环境搭建
 
 - 安装 gcc  [参考博客](https://blog.csdn.net/qq_39366020/article/details/106434094)
-
-
-
 
 
 - vscode 远程 ssh
@@ -56,7 +62,7 @@ pve 搭建 jellyfin 影音服务器用。
 
 ##### 2. makefile 编写
 
-- Makefile 编写步骤
+- Makefile 编写步骤 (待更新, 自己看代码, 文档不想写)
 
 
 ##### 3. SDK 文档
@@ -64,7 +70,7 @@ pve 搭建 jellyfin 影音服务器用。
 curl 移植 https://cloud.tencent.com/developer/article/1932820
 ./configure --prefix=$PWD/install_dir --host=x86 CC=gcc CXX=g++
 
-##### 4. 报错
+##### 4. 报错 (忘记记录了，反正能用)
 
 
 
@@ -118,15 +124,149 @@ curl 移植 https://cloud.tencent.com/developer/article/1932820
 
 #### 二、arm 架构, 这里用的 arm64(泰山派) 和arm32 (电视机盒子+香蕉派 armv7l),
 
+> 平台: bananapi-m3
+>
+> 芯片: 全痔 A83T
+>
+> 香蕉派系统镜像名: 2018-07-10-ubuntu-16.04-server-preview-bpi-m3-sd-emmc.img
+
+```bash
+交叉编译工具种类:
+
+项目	实际环境
+CPU 架构	ARMv7-A
+Linux 位数	32 位
+浮点 ABI	Hard-float（VFP registers）
+C 库	glibc 2.23
+GCC	5.4.0
+目标三元组	arm-linux-gnueabihf
+
+交叉编译工具 linaro gcc
+
+arm 交叉编译工具链官网:
+https://developer.arm.com/Downloads/-/Legacy%20Linaro%20GNU%20Toolchains
+
+gcc 工具链选择 (实测能用):
+gcc-linaro-6.5.0-2018.12-x86_64_arm-linux-gnueabihf
+
+必须使用 gnueablihf 的版本。
+
+备注: 使用 7.5 的工具链会出现 glib 的版本不匹配的问题。
+```
+
+
 ##### 1. 交叉编译环境搭建
+
+- 路径: armv7l/tools/toolchains
+
 
 
 ##### 2. 移植 curl 库, 移植 openssh, 移植 openssl, 移植 curl, 移植ssh(如需要)
-移植openssl 编译报错
+
+
+> 移植总览(已完成):
+>
+> 1. 新增交叉编译工具链路径: 去 Arm 官网下载
+>
+> 2. armv7l 路径下修改 Makefile 使用交叉编译工具。
+>
+> 3. openssl 和 curl 修改交叉编译工具链路径。
+>
+> 4. 交叉编译工具的选型和兼容测试。 (改为静态库, 避免使用太多.so 库文件懒得放)
+>
+> 5. 源码依旧放在 x86 路径下，避免维护 2 套源码。
+>
+> - 改动文件: Makefile, lib_src, scripts(用于交叉编译 openssl和 curl 库)
+
+
+- openssl 移植
+```bash
+    mkdir install_dir
+
+    ./Configure linux-armv4 \
+        --cross-compile-prefix=/home/workspace/DDNS_CloudTencent/src/armv7l/tools/toolchains/gcc-linaro-6.5.0-2018.12-x86_64_arm-linux-gnueabihf/bin/arm-linux-gnueabihf- \
+        --prefix=/home/workspace/DDNS_CloudTencent/src/armv7l/lib_src/openssl-3.4.0/install_dir \
+        --openssldir=/home/workspace/DDNS_CloudTencent/src/armv7l/lib_src/openssl-3.4.0/ssl \
+        no-shared
+
+    make
+    make install
+
+```
+
+- curl 移植
+
+> ./configure 含义解释:
+>
+>      --prefix：指定安装路径。
+>
+>      --enable-shared：编译动态库（.so）。
+>
+>      --disable-static：禁用静态库（.a）。
+
+
+```bash
+
+
+# 交叉编译工具链前缀：替换成实际存在的路径
+export CROSS_COMPILE=/home/workspace/DDNS_CloudTencent/src/armv7l/tools/toolchains/gcc-linaro-6.5.0-2018.12-x86_64_arm-linux-gnueabihf/bin/arm-linux-g
+nueabihf-
+
+export CC="${CROSS_COMPILE}gcc"
+export CXX="${CROSS_COMPILE}g++"
+export AR="${CROSS_COMPILE}ar"
+export RANLIB="${CROSS_COMPILE}ranlib"
+export STRIP="${CROSS_COMPILE}strip"
+
+# ARM 版依赖库目录
+export OPENSSL_DIR=/home/workspace/DDNS_CloudTencent/src/armv7l/lib_src/openssl-3.4.0/install_dir
+export CURL_DIR=/home/workspace/DDNS_CloudTencent/src/armv7l/lib_src/curl-7.58.0/install_dir
+
+
+./configure \
+        --build=x86_64-pc-linux-gnu \
+        --host=arm-linux-gnueabihf \
+        --prefix="$CURL_DIR" \
+        --with-ssl="$OPENSSL_DIR" \
+        --enable-shared \
+        --enable-static \
+        --disable-ldap \
+        --disable-ldaps \
+        --without-zlib \
+        CC="$CC" \
+        AR="$AR" \
+        RANLIB="$RANLIB"
+
+make
+
+make install
+
+```
+###### 3. MISC (杂项)
+
+- 香蕉派连 wifi 命令行
+  ```bash
+  nmcli device status
+  sudo nmcli radio wifi on
+  nmcli device wifi list
+  sudo nmcli device wifi connect "你的WiFi名称" password "你的WiFi密码"
+  nmcli connection show --active
+  ```
+
+- 香蕉派挂载 U盘, ntfs 格式
+  ```bash
+    #自己问 AI, 不过可以直接试试下方的方法。我也是问 AI 的
+
+    sudo apt install exfat-fuse exfat-utils
+    sudo mkdir -p /mnt/usb
+    sudo mount -t exfat-fuse /dev/sda1 /mnt/us
+  ```
 
 
 
 #### 三、程序部分
+
+(文档待更新,敬请期待)
 
 ##### 1. linux 获取本地 IP 地址
 - 通过 getifaddrs 函数来获取 IPv4/6 地址 [参考地址方法5](https://blog.csdn.net/zhongmushu/article/details/89944990)
@@ -152,6 +292,4 @@ curl 移植 https://cloud.tencent.com/developer/article/1932820
 - 获取公网 IP
 
   > 参考地址: https://www.mebi.me/1766
-
-
 
