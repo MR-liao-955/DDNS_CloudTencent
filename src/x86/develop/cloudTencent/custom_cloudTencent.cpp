@@ -242,6 +242,7 @@ void cloudTencent_dnspod::record_delete_remain_one()
             dnspod_record_delete(g_file_config.domain_name, it->id);
         }
     }
+    DEBUG_PRINT("[done]\n");
 }
 
 
@@ -431,7 +432,7 @@ int cloudTencent_dnspod::dnspod_record_modify(ip_type_t ip_type, string ip_addr)
 {
     string payload;
     struct curl_slist *headers = NULL;
-
+    DEBUG_PRINT("entry ip:[%s]\n", ip_type==CLASS_IPV4 ? "IPv4" : "IPv6");
     string request_action = "ModifyRecord";
 
     /*

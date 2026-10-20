@@ -4,7 +4,7 @@
 #include <string.h>
 #include <iostream>
 
-#define VERSION                                 "0.2.0"
+#define VERSION                                 "0.2.1"
 
 #if 1
 #define DEBUG_PRINT(fmt, ...)  printf("[DEBUG] [%s][%d] " fmt "\n", __func__, __LINE__, ##__VA_ARGS__)
