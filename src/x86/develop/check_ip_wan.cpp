@@ -106,7 +106,9 @@ int Ipaddress:: match_wanip_with_localip()
 {
     DEBUG_PRINT("Entry !\n");
 #if 1
-    if (valid_ipwan == true && ip_wan != ip_local){
+    DEBUG_PRINT("ip_wan:[%s] !\n", ip_wan.data());
+    DEBUG_PRINT("ip_local:[%s] !\n", ip_local.data());
+    if (valid_ipwan == true && ip_wan == ip_local){
         // 本机IP是公网
         ip_ddns_modify = ip_local;
         return _RETURN_SUCC;
