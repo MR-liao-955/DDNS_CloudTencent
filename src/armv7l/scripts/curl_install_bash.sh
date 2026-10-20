@@ -17,18 +17,21 @@ export CURL_DIR=/home/workspace/DDNS_CloudTencent/src/armv7l/lib_src/curl-7.58.0
 
 
 ./configure \
-	    --build=x86_64-pc-linux-gnu \
-	        --host=arm-linux-gnueabihf \
-		    --prefix="$CURL_DIR" \
-		        --with-ssl="$OPENSSL_DIR" \
-			    --enable-shared \
-			        --enable-static \
-				    --disable-ldap \
-				        --disable-ldaps \
-					    --without-zlib \
-					        CC="$CC" \
-						    AR="$AR" \
-						        RANLIB="$RANLIB"
+		--build=x86_64-pc-linux-gnu \
+		--host=arm-linux-gnueabihf \
+		--prefix="$CURL_DIR" \
+		--with-ssl="$OPENSSL_DIR" \
+		--with-ca-bundle=/etc/ssl/certs/ca-certificates.crt \
+    	--with-ca-path=/etc/ssl/certs \
+		--enable-shared \
+		--enable-static \
+		--disable-ldap \
+		--disable-ldaps \
+		--without-zlib \
+		CC="$CC" \
+		AR="$AR" \
+		RANLIB="$RANLIB" \
+    	LIBS="-ldl -lpthread"
 
 make
 
