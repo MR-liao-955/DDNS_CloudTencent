@@ -432,7 +432,7 @@ int cloudTencent_dnspod::dnspod_record_modify(ip_type_t ip_type, string ip_addr)
 {
     string payload;
     struct curl_slist *headers = NULL;
-    DEBUG_PRINT("entry ip:[%s]\n", ip_type==CLASS_IPV4 ? "IPv4" : "IPv6");
+    DEBUG_PRINT("entry ip:[%s]\n", ip_addr.data());
     string request_action = "ModifyRecord";
 
     /*

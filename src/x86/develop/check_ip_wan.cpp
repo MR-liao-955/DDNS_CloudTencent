@@ -68,6 +68,7 @@ static bool decode_ipwan(Ipaddress *ipaddr, string src)
         src.pop_back();
     }
     ipaddr->ip_wan = src;
+    DEBUG_PRINT("ip_wan:[%s]\n", ipaddr->ip_wan.data());
     return true;
 }
 
@@ -80,7 +81,7 @@ void _IPv4::check_nat_wan_ip()
     const char * url = g_file_config.check_ip_url_ipv4.c_str();
 
     headers = curl_slist_append(headers, ": ");
-    curl_request(url, "GET", NULL, 2, headers, (curl_cb )check_wan_ip_handle_cb);
+    resp = curl_request(url, "GET", NULL, 2, headers, (curl_cb )check_wan_ip_handle_cb);
     decode_ipwan(this, resp);
     DEBUG_PRINT("ipv4 checkdone !\n");
 }
